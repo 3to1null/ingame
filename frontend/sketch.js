@@ -1,12 +1,12 @@
 let bullet;
 
 function setup() {
-    createCanvas(windowWidth, windowHeight);
+    createCanvas(400, 400);
     bullet = new Bullet(100,100,0,0);
 }
 
 function draw() {
-    background(51);
+    background(255);
     bullet.x = mouseX;
     bullet.y = mouseY;
     bullet.draw();
