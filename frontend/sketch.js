@@ -10,6 +10,8 @@ function draw() {
     bullet.x = mouseX;
     bullet.y = mouseY;
     bullet.draw();
+    stroke(255);
+    rect(10,10,10,10);
 }
 
 
