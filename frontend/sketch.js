@@ -6,7 +6,7 @@ function setup() {
 }
 
 function draw() {
-    background(255);
+    background(51);
     bullet.x = mouseX;
     bullet.y = mouseY;
     bullet.draw();
@@ -16,12 +16,13 @@ function draw() {
 
 
 
-function Bullet(x,y,h,v) { //the class for a bullet
-    this.pos = createVector(x,y);
-    this.vel = createVector(h,v);
 
-    this.draw = function () {
-        rect(this.x, this.y, 20, 20);
+class Bullet {
+    constructor(x, y, h, v) {
+        this.pos = createVector(x, y);
+        this.vel = createVector(h, v);
+        this.draw = function () {
+            rect(this.x, this.y, 20, 20);
+        };
     }
-
 }
