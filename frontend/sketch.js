@@ -7,17 +7,14 @@ let bullets = [];
 
 function setup() {
     createCanvas(400, 400);
-    bullet = new Bullet(100,100,PI,1);
+    player = new Tank(100,100,0,0);
 }
 
 function draw() {
     background(51);
-    //bullet.x = mouseX;
-    //bullet.y = mouseY;
-    bullet.update();
-    bullet.draw();
+    player.update();
+    player.draw();
     
-    //rect(10,10,10,10);
 }
 
 function keyPressed() {
@@ -74,12 +71,12 @@ class Bullet {
         };
 
         this.update = function() {
-            this.x += cos(this.r)*v;
-            this.y += sin(this.r)*v;
+            this.x += cos(this.r)*this.v;
+            this.y += sin(this.r)*this.v;
         };
         this.update = function() {
-            this.x += cos(r)*v;
-            this.y += sin(r)*v;
+            this.x += cos(r)*this.v;
+            this.y += sin(r)*this.v;
         }
     }
 }
@@ -99,14 +96,12 @@ class Tank {
         };
 
         this.update = function() {
-
             if (inputs[0])
                 this.rotate(-0.05);
             if (inputs[1])
                 this.rotate(0.05);
             if (inputs[2])
-                this.v += 0.1; console.log("speedup");
-
+                this.v += 0.1;
             if (inputs[3])
                 this.v -= 0.1;
 
@@ -121,13 +116,14 @@ class Tank {
 
         this.rotate = function(dr) {
             this.r += dr;
-        }
-
+        };
     }
 }
 
 function cap(x, min, max) {
-    if (min < x && x < max) 
+    if (min <= x && x <= max) {
+
+    }
         return x;
     if (min > x)
         return min;
