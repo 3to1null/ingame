@@ -7,18 +7,17 @@ let bullets = [];
 
 function setup() {
     createCanvas(400, 400);
-
-    rectMode(CENTER);
-
-
-    player = new Tank(100,100,0,1);
+    bullet = new Bullet(100,100,PI,1);
 }
 
 function draw() {
     background(51);
- 
-    player.update();
-    player.draw();
+    //bullet.x = mouseX;
+    //bullet.y = mouseY;
+    bullet.update();
+    bullet.draw();
+    
+    //rect(10,10,10,10);
 }
 
 function keyPressed() {
@@ -68,9 +67,8 @@ class Bullet {
     constructor(x, y, r, v) {
         this.x = x;
         this.y = y;
-        this.r = r;
         this.v = v;
-
+        this.r = r;
         this.draw = function () {
             point(this.x, this.y);
         };
@@ -79,6 +77,10 @@ class Bullet {
             this.x += cos(this.r)*v;
             this.y += sin(this.r)*v;
         };
+        this.update = function() {
+            this.x += cos(r)*v;
+            this.y += sin(r)*v;
+        }
     }
 }
 
