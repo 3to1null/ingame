@@ -8,11 +8,15 @@
 
         <script>
 
-            var socket = io('http://timklein.tk');
-            socket.on('news', function (data) {
+            var socket = io('http://192.168.135.241:8009');
+
+            socket.on('init', (data) => {
               console.log(data);
-              socket.emit('my other event', { my: 'data' });
             });
+
+            socket.on('update_state', (data) => {
+                console.log('update_state')
+            })
         
         </script>
 

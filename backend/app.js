@@ -1,27 +1,39 @@
-var app = require('http').createServer(handler)
+var app = require('http').createServer()
 var io = require('socket.io')(app);
 var fs = require('fs');
 
-console.log('Starting socket')
+console.log('Starting socket');
 
 app.listen(8009);
 
-function handler (req, res) {
-  fs.readFile(__dirname + '/index.html',
-  function (err, data) {
-    if (err) {
-      res.writeHead(500);
-      return res.end('Error loading index.html');
+const state = {
+  "players":{}
+};
+
+io.on('connection', (socket) => {
+  // On connection
+  state["players"][socket.id] = {
+    "pos": {
+      "x": 0,
+      "y": 0
     }
+  };
 
-    res.writeHead(200);
-    res.end(data);
-  });
-}
+  socket.emit('init', 
+    {'state': state}
+  )
 
-io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
+  socket.on('update_player', (data) => {
     console.log(data);
   });
+
+  socket.on('disconnect', (reason) => {
+    console.log(`${socket.id} closed connection for reason: ${reason}.`)
+    delete state["players"][socket.id];
+  })
 });
+
+// Broadcast game state every 30ms
+setInterval(() => {
+  io.emit('update_state', state)
+}, 30)
