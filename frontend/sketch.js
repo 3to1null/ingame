@@ -1,4 +1,4 @@
-let maxV = 5;
+let maxV = 3;
 
 let player; 
 
@@ -7,6 +7,7 @@ let bullets = [];
 
 function setup() {
     createCanvas(400, 400);
+    rectMode(CENTER);
     player = new Tank(100,100,0,0);
 }
 
@@ -92,7 +93,8 @@ class Tank {
         this.draw = function() {
             translate(this.x, this.y);
             rotate(this.r);
-            rect(0, 0, 20, 20);
+            rect(0, 0, 20, 15);
+            rect(10,0,15,3);
         };
 
         this.update = function() {
@@ -121,9 +123,7 @@ class Tank {
 }
 
 function cap(x, min, max) {
-    if (min <= x && x <= max) {
-
-    }
+    if (min <= x && x <= max)
         return x;
     if (min > x)
         return min;
