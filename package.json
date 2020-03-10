@@ -1,0 +1,23 @@
+{
+  "name": "ingame",
+  "version": "0.0.1",
+  "description": "Jo tim ff een testje",
+  "main": "backend/app.js",
+  "dependencies": {
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3to1null/ingame.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/3to1null/ingame/issues"
+  },
+  "homepage": "https://github.com/3to1null/ingame#readme"
+}

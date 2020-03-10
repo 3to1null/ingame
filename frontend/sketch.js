@@ -2,11 +2,11 @@ let bullet;
 
 function setup() {
     createCanvas(400, 400);
-    bullet = new Bullet(100,100,0,1);
+    bullet = new Bullet(100,100,PI,1);
 }
 
 function draw() {
-    background(51,52,0);
+    background(51);
     //bullet.x = mouseX;
     //bullet.y = mouseY;
     bullet.update();
@@ -22,15 +22,16 @@ function draw() {
 
 class Bullet {
     constructor(x, y, r, v) {
-        this.pos = createVector(x, y);
+        this.x = x;
+        this.y = y;
         this.v = v;
         this.r = r;
         this.draw = function () {
             rect(this.x, this.y, 20, 20);
         };
         this.update = function() {
-            this.pos.x += cos(r)*v;
-            this.pos.y += sin(r)*v;
+            this.x += cos(r)*v;
+            this.y += sin(r)*v;
         }
     }
 }

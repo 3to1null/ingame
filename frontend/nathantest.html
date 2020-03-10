@@ -1,0 +1,25 @@
+<!doctype HTML>
+<html>
+    <head>
+        <title>ingame</title>
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
+
+        <script>
+
+            var socket = io('http://timklein.tk');
+            socket.on('news', function (data) {
+              console.log(data);
+              socket.emit('my other event', { my: 'data' });
+            });
+        
+        </script>
+
+
+    </body>
+</html>
+
+
+
+
