@@ -16,16 +16,16 @@ const state = {
 var socket = io('http://timklein.tk:8009');
 
 socket.on('init', (data) => { // first connection
-    console.log("received init with data");
-    console.log(data);
+    //console.log("received init with data");
+    //console.log(data);
     
     //console.log("socket.id: " + socket.id);
     initPlayers(data);
 });
 
 socket.on('new', (data) => { // new player
-    console.log("new player joins the game");
-    console.log(data);
+    //console.log("new player joins the game");
+    //console.log(data);
 
     addPlayer(data);
 });
@@ -61,8 +61,7 @@ function initPlayers(data) {
 
 function addPlayer(data) {
     if (data['id'] != socket.id) {
-        console.log("adding new enemy");
-        console.log(data);
+        console.log(data['id'] + " joined the game");
         state['players'] = data.state['players']; // update local players data
         enemys.push(new Enemy(data['id'], color(255,0,0), state.players[data['id']].x, state.players[data['id']].y, state.players[data['id']].r, state.players[data['id']].v));
     }
@@ -71,23 +70,17 @@ function addPlayer(data) {
 function removePlayer(id) {
     for (var i=0; i<enemys.length; i++) {
         if (enemys[i].id == id) {
-            enemys.splice[i];
+            enemys.splice(i,1);
+            console.log(id + " left the game");
         }
     }
 }
 
-// update to server?
-
-/*setInterval(() => {
-    io.emit('update_state', state)
-  }, 30)
-*/  
-
-
 // ------- main game code
 
 function setup() {
-    createCanvas(400, 400);
+    var canvas = createCanvas(400, 400);
+    canvas.parent('canvasholder');
     rectMode(CENTER);
     //noLoop();
 }
@@ -105,9 +98,11 @@ function draw() {
         enemys[i].update();
         enemys[i].draw();
     }
-    /*enemy.update();
-    enemy.draw(); */
-    //noLoop();
+    // -- debugging 
+    document.getElementById("1").innerHTML = Object.keys(state.players).length;
+    /*document.getElementById("2").innerHTML = state.players[socket.id]['id'];
+    document.getElementById("3").innerHTML = "";
+    document.getElementById("4").innerHTML = ""; */
 }
 
 function keyPressed() {
@@ -247,11 +242,12 @@ class Enemy {
         };
 
         this.update = function() {
-
-            this.x = state.players[this.id]['x'];
-            this.y = state.players[this.id]['y'];
-            this.r = state.players[this.id]['r'];
-            this.v = state.players[this.id]['v'];
+            if (state.players[this.id]) {
+                this.x = state.players[this.id]['x'];
+                this.y = state.players[this.id]['y'];
+                this.r = state.players[this.id]['r'];
+                this.v = state.players[this.id]['v'];
+            }
 //            console.log(state.players[this.id]);
             /*if (inputs[0])
                 this.rotate(-0.05);
