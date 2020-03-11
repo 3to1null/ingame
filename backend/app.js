@@ -32,7 +32,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', (reason) => {
     console.log(`${socket.id} closed connection for reason: ${reason}.`)
-    socket.emit('delete', {
+    io.emit('delete', {
       'id': socket.id
     });
     delete state["players"][socket.id];
