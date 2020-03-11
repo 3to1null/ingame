@@ -20,7 +20,8 @@ io.on('connection', (socket) => {
   };
 
   io.emit('new', { // everyone add new enemy
-    'id': socket.id
+    'id': socket.id,
+    'state': state
   });
 
   socket.emit('init', {
