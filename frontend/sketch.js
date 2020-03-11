@@ -6,7 +6,7 @@ let enemys = [];
 let inputs = [false,false,false,false,false]; // left, right, up, down, fire
 let bullets = [];
 
-// ------- server stuff
+// ------- server recieves
 
 const state = {
     "players":{}
@@ -16,31 +16,62 @@ const state = {
 var socket = io('timklein.tk:8009');
 
 socket.on('init', (data) => { // first connection
+    console.log("received init with data");
     console.log(data);
-    console.log("socket.id: " + socket.id);
-    initPlayers(data.state);
+    
+    //console.log("socket.id: " + socket.id);
+    initPlayers(data);
+});
+
+socket.on('new', (data) => { // new player
+    console.log("new player joins the game");
+    console.log(data);
+
+    addPlayer(data);
 });
 
 // update from server
 socket.on('update_state', (data) => {
-    //console.log('update_state')
     state['players'] = data['players']; // update local players data
     loop(); // run game loop
-})
+});
 
-function initPlayers(state) {
+socket.on('delete', (data) => {
+    console.log("received a delete");
+    console.log(data);
+    removePlayer(data['id']);
+});
+
+// what to do with server recieves
+
+function initPlayers(data) {
     console.log("init players");
-    console.log(state);
-    for (var id in state.players) {
-        console.log("checking id: " + id);
-        //console.log(state.players[id]);
-        //console.log("socid: " + socket.id);
+    console.log(data);
+    for (var id in data.state.players) {
+        //console.log("checking id: " + id);
         if (id == socket.id) {
-            console.log("match!");
+            //console.log("match!");
             player = new Player(id, color(0,255,0), 100, 100, 0, 0);
         } else {
-            console.log("no match :(");
-            enemys.push(new Enemy(id, color(255,0,0), state.players[id].x, state.players[id].y, state.players[id].r, state.players[id].v));
+            //console.log("no match :(");
+            enemys.push(new Enemy(id, color(255,0,0), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
+        }
+    }    
+}
+
+function addPlayer(data) {
+    if (data['id'] != socket.id) {
+        console.log("adding new enemy");
+        console.log(data);
+        state['players'] = data.state['players']; // update local players data
+        enemys.push(new Enemy(data['id'], color(255,0,0), state.players[data['id']].x, state.players[data['id']].y, state.players[data['id']].r, state.players[data['id']].v));
+    }
+}
+
+function removePlayer(id) {
+    for (var i=0; i<enemys.length; i++) {
+        if (enemys[i].id == id) {
+            enemys.splice[i];
         }
     }
 }
@@ -58,8 +89,6 @@ function initPlayers(state) {
 function setup() {
     createCanvas(400, 400);
     rectMode(CENTER);
-    //player = new Player(socket.id, color(0,255,0),100,100,0,0);
-    //enemy = new Enemy(1, color(255,0,0), 300, 300, 0, 0);
     noLoop();
 }
 
@@ -123,7 +152,6 @@ function keyReleased() {
     }
 }
 
-
 class Bullet {
     constructor(x, y, r, v) {
         this.x = x;
@@ -144,7 +172,6 @@ class Bullet {
         }
     }
 }
-
 
 class Player {
     constructor(id, c, x, y, r, v) {
@@ -223,6 +250,8 @@ class Enemy {
 
             this.x = state.players[this.id]['x'];
             this.y = state.players[this.id]['y'];
+            this.r = state.players[this.id]['r'];
+            this.v = state.players[this.id]['v'];
 //            console.log(state.players[this.id]);
             /*if (inputs[0])
                 this.rotate(-0.05);
