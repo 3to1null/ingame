@@ -25,6 +25,13 @@ io.on('connection', (socket) => {
 
   socket.on('update_player', (data) => {
     console.log(data);
+    console.log(socket.id);
+    /*state["players"][socket.id] = {
+      "x": 0,
+      "y": 0,
+      "r": 0,
+      "v": 0
+    };*/
   });
 
   socket.on('disconnect', (reason) => {
