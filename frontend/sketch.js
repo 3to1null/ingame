@@ -72,6 +72,10 @@ function draw() {
     
     player.update();
     player.draw();
+    for (var i = 0; i<enemys.length; i++) {
+        enemys[i].update();
+        enemys[i].draw();
+    }
     /*enemy.update();
     enemy.draw(); */
     noLoop();
@@ -178,6 +182,16 @@ class Player {
             
             this.x = cap(this.x, 0, width);
             this.y = cap(this.y, 0, height);
+
+            socket.emit('update_player', {
+                'x': this.x,
+                'y': this.y,
+                'r': this.r,
+                'v': this.v
+            }
+  )
+
+
         };
 
         this.rotate = function(dr) {
@@ -206,6 +220,10 @@ class Enemy {
         };
 
         this.update = function() {
+
+            this.x = state.players[this.id]['x'];
+            this.y = state.players[this.id]['y'];
+//            console.log(state.players[this.id]);
             /*if (inputs[0])
                 this.rotate(-0.05);
             if (inputs[1])
