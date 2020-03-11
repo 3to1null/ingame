@@ -1,24 +1,56 @@
 let maxV = 3;
 
 let player; 
-let enemy;
+let enemys = [];
 
 let inputs = [false,false,false,false,false]; // left, right, up, down, fire
 let bullets = [];
 
 // ------- server stuff
+
+const state = {
+    "players":{}
+};
+
+// make connection
 var socket = io('timklein.tk:8009');
 
-socket.on('init', (data) => {
+socket.on('init', (data) => { // first connection
     console.log(data);
+    console.log("socket.id: " + socket.id);
+    initPlayers(data.state);
 });
 
+// update from server
 socket.on('update_state', (data) => {
-    console.log('update_state')
-    loop();
+    //console.log('update_state')
+    state['players'] = data['players']; // update local players data
+    loop(); // run game loop
 })
 
+function initPlayers(state) {
+    console.log("init players");
+    console.log(state);
+    for (var id in state.players) {
+        console.log("checking id: " + id);
+        //console.log(state.players[id]);
+        //console.log("socid: " + socket.id);
+        if (id == socket.id) {
+            console.log("match!");
+            player = new Player(id, color(0,255,0), 100, 100, 0, 0);
+        } else {
+            console.log("no match :(");
+            enemys.push(new Enemy(id, color(255,0,0), state.players[id].x, state.players[id].y, state.players[id].r, state.players[id].v));
+        }
+    }
+}
 
+// update to server?
+
+/*setInterval(() => {
+    io.emit('update_state', state)
+  }, 30)
+*/  
 
 
 // ------- main game code
@@ -26,20 +58,22 @@ socket.on('update_state', (data) => {
 function setup() {
     createCanvas(400, 400);
     rectMode(CENTER);
-    player = new Player(0, color(0,255,0),100,100,0,0);
-    enemy = new Enemy(1, color(255,0,0), 300, 300, 0, 0);
+    //player = new Player(socket.id, color(0,255,0),100,100,0,0);
+    //enemy = new Enemy(1, color(255,0,0), 300, 300, 0, 0);
     noLoop();
 }
 
 function draw() {
+    if(!socket.id)
+        return;
     background(51);
     stroke(0);
     text("fps: " + round(frameRate()), 5, 10);
     
     player.update();
     player.draw();
-    enemy.update();
-    enemy.draw();
+    /*enemy.update();
+    enemy.draw(); */
     noLoop();
 }
 
