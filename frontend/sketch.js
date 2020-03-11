@@ -13,7 +13,7 @@ const state = {
 };
 
 // make connection
-var socket = io('http://timklein.tk:8009');
+var socket = io('timklein.tk:8009');
 
 socket.on('init', (data) => { // first connection
     console.log("received init with data");
