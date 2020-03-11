@@ -19,9 +19,12 @@ io.on('connection', (socket) => {
     "v": 0
   };
 
+  io.emit('new', { // everyone add new enemy
+    'id': socket.id
+  });
+
   socket.emit('init', {
-    'state': state,
-    'new': socket.id // id of the newcommer
+    'state': state
   });
 
   socket.on('update_player', (data) => {
