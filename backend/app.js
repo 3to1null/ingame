@@ -19,9 +19,10 @@ io.on('connection', (socket) => {
     "v": 0
   };
 
-  socket.emit('init', 
-    {'state': state}
-  )
+  socket.emit('init', {
+    'state': state,
+    'new': socket.id // id of the newcommer
+  });
 
   socket.on('update_player', (data) => {
     console.log(data);
