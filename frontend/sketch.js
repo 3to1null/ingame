@@ -33,7 +33,7 @@ socket.on('new', (data) => { // new player
 // update from server
 socket.on('update_state', (data) => {
     state['players'] = data['players']; // update local players data
-    loop(); // run game loop
+    //loop(); // run game loop
 });
 
 socket.on('delete', (data) => {
@@ -89,11 +89,11 @@ function removePlayer(id) {
 function setup() {
     createCanvas(400, 400);
     rectMode(CENTER);
-    noLoop();
+    //noLoop();
 }
 
 function draw() {
-    if(!socket.id)
+    if(!player)
         return;
     background(51);
     stroke(0);
@@ -107,7 +107,7 @@ function draw() {
     }
     /*enemy.update();
     enemy.draw(); */
-    noLoop();
+    //noLoop();
 }
 
 function keyPressed() {
