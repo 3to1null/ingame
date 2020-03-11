@@ -25,13 +25,8 @@ io.on('connection', (socket) => {
 
   socket.on('update_player', (data) => {
     console.log(data);
-    console.log(socket.id);
-    /*state["players"][socket.id] = {
-      "x": 0,
-      "y": 0,
-      "r": 0,
-      "v": 0
-    };*/
+    console.log("data received from: " + socket.id);
+    state["players"][socket.id] = data;
   });
 
   socket.on('disconnect', (reason) => {
