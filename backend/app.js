@@ -13,10 +13,10 @@ const state = {
 io.on('connection', (socket) => {
   // On connection
   state["players"][socket.id] = {
-    "pos": {
-      "x": 0,
-      "y": 0
-    }
+    "x": 0,
+    "y": 0,
+    "r": 0,
+    "v": 0
   };
 
   socket.emit('init', 
