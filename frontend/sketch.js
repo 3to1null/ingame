@@ -65,7 +65,7 @@ function initPlayers(data) {
         if (id == socket.id) {
             //console.log("match!");
             player = new Player(id, color(0,255,0), 100, 100, 0, 0);
-        } else {
+        } if (true) {
             //console.log("no match :(");
             enemies.push(new Enemy(id, color(255,0,0), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
         }
@@ -138,22 +138,44 @@ function updateCurrentState(){
 
     const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp;
     currentState.timestamp += 1000 / frameRate();
-    const progress = (currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1;
+    const progress = cap((currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1,0,1);
     // console.log(bufferStates[1].timestamp, bufferStates[0].timestamp);
 
-    for (const [key, next_player_state] of Object.entries(bufferStates[1].players)){
+    for (const [key, nps] of Object.entries(bufferStates[1].players)){
         if(key in bufferStates[0].players){
-            const prev_player_state = bufferStates[0].players[key];
-            currentState.players[key] = {
-                'x': linearInter(prev_player_state['x'], next_player_state['x'], progress),
-                'y': linearInter(prev_player_state['y'], next_player_state['y'], progress),
-                'r': linearInter(prev_player_state['r'], next_player_state['r'], progress),
-                // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
-                'v': next_player_state['v']
+            const pps = bufferStates[0].players[key];
+
+            if(currentState.players[key] !== undefined){
+                const cps = currentState.players[key];
+
+                const max_delta_x = abs(max(cos(cps.r), cos(pps.r), cos(nps.r)) * max(cps.v, pps.v, nps.v));
+                const new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
+
+                const max_delta_y = abs(max(sin(cps.r), sin(pps.r), sin(nps.r)) * max(cps.v, pps.v, nps.v));
+                const new_y = cap(linearInter(pps['y'], nps['y'], progress), cps.y - max_delta_y, cps.y + max_delta_y);
+
+                currentState.players[key] = {
+                    'x': new_x,
+                    'y': new_y,
+                    'r': linearInter(pps['r'], nps['r'], progress),
+                    // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
+                    'v': nps['v']
+                }
+
+            }else{
+                currentState.players[key] = {
+                    'x': linearInter(pps['x'], nps['x'], progress),
+                    'y': linearInter(pps['y'], nps['y'], progress),
+                    'r': linearInter(pps['r'], nps['r'], progress),
+                    // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
+                    'v': nps['v']
+                }
             }
+
+
         }else{
             console.log(bufferStates[1])
-            addPlayer(key, next_player_state)
+            addPlayer(key, nps)
         }
 
     };

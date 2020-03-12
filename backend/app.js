@@ -43,4 +43,4 @@ io.on('connection', (socket) => {
 // Broadcast game state
 setInterval(() => {
   io.emit('update_state', state)
-}, 100)
+}, 30)
