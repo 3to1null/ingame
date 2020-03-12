@@ -19,22 +19,15 @@ io.on('connection', (socket) => {
     "v": 0
   };
 
-  io.emit('new', { // everyone add new enemy
-    'id': socket.id,
-    'state': state
-  });
-  
   // Give client time to load before sending state.
   setTimeout(() => {
     socket.emit('init', {
       'state': state
     });
-  }, 100);
+  }, 1000);
 
 
   socket.on('update_player', (data) => {
-    console.log(data);
-    console.log("data received from: " + socket.id);
     state["players"][socket.id] = data;
   });
 
@@ -47,7 +40,7 @@ io.on('connection', (socket) => {
   })
 });
 
-// Broadcast game state every 30ms
+// Broadcast game state
 setInterval(() => {
   io.emit('update_state', state)
-}, 30)
+}, 100)
