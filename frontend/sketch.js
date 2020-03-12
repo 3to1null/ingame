@@ -1,19 +1,22 @@
+const socketLocation = 'http://192.168.135.241:8009';
+
 let maxV = 3;
 
 let player; 
-let enemys = [];
+let enemies = [];
 
 let inputs = [false,false,false,false,false]; // left, right, up, down, fire
 let bullets = [];
 
 // ------- server recieves
-
-const state = {
-    "players":{}
+let bufferStates = [];
+let currentState = {
+    "players": {},
+    "timestamp": Date.now()
 };
 
 // make connection
-var socket = io('http://timklein.tk:8009');
+var socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
     //console.log("received init with data");
@@ -32,8 +35,18 @@ socket.on('new', (data) => { // new player
 
 // update from server
 socket.on('update_state', (data) => {
-    state['players'] = data['players']; // update local players data
-    //loop(); // run game loop
+    const now = Date.now()
+
+    bufferStates.push({
+        'players': data['players'],
+        'timestamp': now
+    })
+    
+    currentState.timestamp = now; 
+
+    if(bufferStates.length > 2){
+        bufferStates.shift();
+    }
 });
 
 socket.on('delete', (data) => {
@@ -54,23 +67,32 @@ function initPlayers(data) {
             player = new Player(id, color(0,255,0), 100, 100, 0, 0);
         } else {
             //console.log("no match :(");
-            enemys.push(new Enemy(id, color(255,0,0), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
+            enemies.push(new Enemy(id, color(255,0,0), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
         }
     }    
 }
 
-function addPlayer(data) {
-    if (data['id'] != socket.id) {
-        console.log(data['id'] + " joined the game");
-        state['players'] = data.state['players']; // update local players data
-        enemys.push(new Enemy(data['id'], color(255,0,0), state.players[data['id']].x, state.players[data['id']].y, state.players[data['id']].r, state.players[data['id']].v));
-    }
+function addPlayer(id, player) {
+    console.log(`${id} joined.`);
+    bufferStates[0]['players'][id] = player; // update local players data
+    enemies.push(
+        new Enemy(
+            id, 
+            color(255,0,0), 
+            player.x, 
+            player.y, 
+            player.r, 
+            player.v
+        )
+    );
+    console.log(enemies)
+    console.log(player)
 }
 
 function removePlayer(id) {
-    for (var i=0; i<enemys.length; i++) {
-        if (enemys[i].id == id) {
-            enemys.splice(i,1);
+    for (var i=0; i<enemies.length; i++) {
+        if (enemies[i].id == id) {
+            enemies.splice(i,1);
             console.log(id + " left the game");
         }
     }
@@ -86,23 +108,55 @@ function setup() {
 }
 
 function draw() {
-    if(!player)
+    if(!player){
         return;
+    }
+
+    updateCurrentState();
+
     background(51);
     stroke(0);
     text("fps: " + round(frameRate()), 5, 10);
     
     player.update();
     player.draw();
-    for (var i = 0; i<enemys.length; i++) {
-        enemys[i].update();
-        enemys[i].draw();
+    for (var i = 0; i<enemies.length; i++) {
+        enemies[i].update();
+        enemies[i].draw();
     }
     // -- debugging 
-    document.getElementById("1").innerHTML = Object.keys(state.players).length;
+    document.getElementById("1").innerHTML = Object.keys(currentState.players).length;
     /*document.getElementById("2").innerHTML = state.players[socket.id]['id'];
     document.getElementById("3").innerHTML = "";
     document.getElementById("4").innerHTML = ""; */
+}
+
+function updateCurrentState(){
+    if(bufferStates.length < 2){
+        return;
+    }
+
+    const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp;
+    currentState.timestamp += 1000 / frameRate();
+    const progress = (currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1;
+    // console.log(bufferStates[1].timestamp, bufferStates[0].timestamp);
+
+    for (const [key, next_player_state] of Object.entries(bufferStates[1].players)){
+        if(key in bufferStates[0].players){
+            const prev_player_state = bufferStates[0].players[key];
+            currentState.players[key] = {
+                'x': linearInter(prev_player_state['x'], next_player_state['x'], progress),
+                'y': linearInter(prev_player_state['y'], next_player_state['y'], progress),
+                'r': linearInter(prev_player_state['r'], next_player_state['r'], progress),
+                // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
+                'v': next_player_state['v']
+            }
+        }else{
+            console.log(bufferStates[1])
+            addPlayer(key, next_player_state)
+        }
+
+    };
 }
 
 function keyPressed() {
@@ -242,29 +296,20 @@ class Enemy {
         };
 
         this.update = function() {
-            if (state.players[this.id]) {
-                this.x = state.players[this.id]['x'];
-                this.y = state.players[this.id]['y'];
-                this.r = state.players[this.id]['r'];
-                this.v = state.players[this.id]['v'];
-            }
-//            console.log(state.players[this.id]);
-            /*if (inputs[0])
-                this.rotate(-0.05);
-            if (inputs[1])
-                this.rotate(0.05);
-            if (inputs[2])
-                this.v += 0.1;
-            if (inputs[3])
-                this.v -= 0.1;*/
+            if (currentState.players[this.id]) {
+                this.x = currentState.players[this.id]['x'];
+                this.y = currentState.players[this.id]['y'];
+                this.r = currentState.players[this.id]['r'];
+                this.v = currentState.players[this.id]['v'];
 
-            this.v = cap(this.v, 0, maxV);
-            
-            this.x += cos(this.r)*this.v;
-            this.y += sin(this.r)*this.v;
-            
-            this.x = cap(this.x, 0, width);
-            this.y = cap(this.y, 0, height);
+                this.v = cap(this.v, 0, maxV);
+                
+                this.x += cos(this.r)*this.v;
+                this.y += sin(this.r)*this.v;
+                
+                this.x = cap(this.x, 0, width);
+                this.y = cap(this.y, 0, height);
+            }
         };
 
         this.rotate = function(dr) {
@@ -279,4 +324,8 @@ function cap(x, min, max) {
     if (min > x)
         return min;
     return max;
+}
+
+function linearInter(start, end, progress){
+    return (end - start) * progress + start;
 }
