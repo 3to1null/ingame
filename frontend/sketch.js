@@ -1,6 +1,8 @@
 const socketLocation = 'http://192.168.135.241:8009';
 
 let maxV = 3;
+let acceleration = 0.1;
+let rotIncrease = 0.05;
 
 let player; 
 let enemies = [];
@@ -148,16 +150,19 @@ function updateCurrentState(){
             if(currentState.players[key] !== undefined){
                 const cps = currentState.players[key];
 
-                const max_delta_x = abs(max(cos(cps.r), cos(pps.r), cos(nps.r)) * max(cps.v, pps.v, nps.v));
+                const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05);
+                const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
+
+                const max_delta_x = abs(cos(new_r) * max(cps.v, pps.v, nps.v));
                 const new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
 
-                const max_delta_y = abs(max(sin(cps.r), sin(pps.r), sin(nps.r)) * max(cps.v, pps.v, nps.v));
+                const max_delta_y = abs(sin(new_r) * max(cps.v, pps.v, nps.v));
                 const new_y = cap(linearInter(pps['y'], nps['y'], progress), cps.y - max_delta_y, cps.y + max_delta_y);
 
                 currentState.players[key] = {
                     'x': new_x,
                     'y': new_y,
-                    'r': linearInter(pps['r'], nps['r'], progress),
+                    'r': new_r,
                     // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
                     'v': nps['v']
                 }
@@ -265,13 +270,13 @@ class Player {
 
         this.update = function() {
             if (inputs[0])
-                this.rotate(-0.05);
+                this.rotate(-rotIncrease);
             if (inputs[1])
-                this.rotate(0.05);
+                this.rotate(rotIncrease);
             if (inputs[2])
-                this.v += 0.1;
+                this.v += acceleration;
             if (inputs[3])
-                this.v -= 0.1;
+                this.v -= acceleration;
 
             this.v = cap(this.v, 0, maxV);
             
