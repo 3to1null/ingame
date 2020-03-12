@@ -1,4 +1,4 @@
-const socketLocation = 'http://192.168.135.241:8009';
+const socketLocation = 'timklein.tk:8009';
 
 let maxV = 3;
 
@@ -8,7 +8,6 @@ let enemies = [];
 let inputs = [false,false,false,false,false]; // left, right, up, down, fire
 let bullets = [];
 
-// ------- server recieves
 let bufferStates = [];
 let currentState = {
     "players": {},
@@ -39,7 +38,7 @@ socket.on('update_state', (data) => {
 
     bufferStates.push({
         'players': data['players'],
-        'timestamp': now
+        'timestamp': now // bufferState[2] (wordt bufferState[1]) is hetzelfde als currentState timestam
     })
     
     currentState.timestamp = now; 
@@ -131,14 +130,23 @@ function draw() {
     document.getElementById("4").innerHTML = ""; */
 }
 
+let progress;
+
 function updateCurrentState(){
     if(bufferStates.length < 2){
         return;
     }
 
-    const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp;
-    currentState.timestamp += 1000 / frameRate();
-    const progress = (currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1;
+    const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp; // verschil tussen twee updates
+    //const tickTime = 32;
+    currentState.timestamp += 1000 / frameRate(); // advance one frame in seconds
+    //const progress = (currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1;
+    progress = (currentState.timestamp - bufferStates[1].timestamp) / tickTime;
+    if (progress > 1) {
+        debugger;
+    }
+    console.log(`tickTime: ${tickTime}, Progress: ${progress}, frameTime: ${1000 / frameRate()}`);
+    //console.log(progress);
     // console.log(bufferStates[1].timestamp, bufferStates[0].timestamp);
 
     for (const [key, next_player_state] of Object.entries(bufferStates[1].players)){
@@ -222,6 +230,17 @@ class Bullet {
     }
 }
 
+function drawTank(x,y,r,c) {
+    translate(x, y);
+    rotate(r);
+    stroke(c);
+    rect(0, 0, 20, 15);
+    rect(10,0,15,3);
+    rotate(-r);
+    translate(-x, -y);
+}
+
+
 class Player {
     constructor(id, c, x, y, r, v) {
         this.id = id;
@@ -232,6 +251,14 @@ class Player {
         this.c = c;
 
         this.draw = function() {
+/*            */
+            if (bufferStates.length > 1 ) {
+                //drawTank(bufferStates[0]['players'][socket.id].x, bufferStates[0]['players'][socket.id].y, bufferStates[0]['players'][socket.id].r, color(255,0,0));
+                //drawTank(bufferStates[1]['players'][socket.id].x, bufferStates[1]['players'][socket.id].y, bufferStates[1]['players'][socket.id].r, color(0,0,255));
+                drawTank(currentState['players'][socket.id].x, currentState['players'][socket.id].y, currentState['players'][socket.id].r, color(0,255,0));
+                drawTank(this.x, this.y, this.r, color(255,255,255));
+            } else {
+            console.log(bufferStates.length);
             translate(this.x, this.y);
             rotate(this.r);
             stroke(this.c);
@@ -239,6 +266,7 @@ class Player {
             rect(10,0,15,3);
             rotate(-this.r);
             translate(-this.x, -this.y);
+            }
         };
 
         this.update = function() {
@@ -327,5 +355,7 @@ function cap(x, min, max) {
 }
 
 function linearInter(start, end, progress){
+    
+//    return (end - start) * cap(progress, 0 ,1) + start;
     return (end - start) * progress + start;
 }
