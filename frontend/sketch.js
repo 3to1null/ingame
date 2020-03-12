@@ -1,3 +1,5 @@
+const socketLocation = 'http://192.168.135.241:8009'
+
 let maxV = 3;
 
 let player; 
@@ -13,7 +15,7 @@ const state = {
 };
 
 // make connection
-var socket = io('http://timklein.tk:8009');
+var socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
     //console.log("received init with data");

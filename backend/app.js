@@ -23,10 +23,14 @@ io.on('connection', (socket) => {
     'id': socket.id,
     'state': state
   });
+  
+  // Give client time to load before sending state.
+  setTimeout(() => {
+    socket.emit('init', {
+      'state': state
+    });
+  }, 100);
 
-  socket.emit('init', {
-    'state': state
-  });
 
   socket.on('update_player', (data) => {
     console.log(data);
