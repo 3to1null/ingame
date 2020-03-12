@@ -163,8 +163,7 @@ function updateCurrentState(){
                     'x': new_x,
                     'y': new_y,
                     'r': new_r,
-                    // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
-                    'v': nps['v']
+                    'v': new_v,
                 }
 
             }else{
@@ -172,7 +171,6 @@ function updateCurrentState(){
                     'x': linearInter(pps['x'], nps['x'], progress),
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
-                    // 'v': linearInter(prev_player_state['v'], next_player_state['v'], progress),
                     'v': nps['v']
                 }
             }
