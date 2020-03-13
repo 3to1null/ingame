@@ -1,8 +1,23 @@
-const socketLocation = 'http://192.168.135.241:8009';
+const socketLocation = 'timklein.tk:8009';
+
+let isInit = false;
 
 let maxV = 3;
 let acceleration = 0.1;
 let rotIncrease = 0.05;
+
+let tankWidth = 15;
+let tankLength = 20;
+let barrelLength = 5;
+let barrelWidth = 3;
+let barrelOffSet = 10;
+
+let RED;
+let YELLOW;
+let GREEN;
+let CYAN;
+let BLUE;
+let PURPLE;
 
 let player; 
 let enemies = [];
@@ -26,6 +41,7 @@ socket.on('init', (data) => { // first connection
     
     //console.log("socket.id: " + socket.id);
     initPlayers(data);
+    isInit = true;
 });
 
 socket.on('new', (data) => { // new player
@@ -103,14 +119,22 @@ function removePlayer(id) {
 // ------- main game code
 
 function setup() {
+    RED = color(255,0,0);
+    YELLOW = color(255,255,0);
+    GREEN = color(0,255,0);
+    CYAN = color(0,255,255);
+    BLUE = color(0,0,255);
+    PURPLE = color(255,0,255);
+    
+
     var canvas = createCanvas(400, 400);
     canvas.parent('canvasholder');
     rectMode(CENTER);
-    //noLoop();
+    
 }
 
 function draw() {
-    if(!player){
+    if(!isInit){
         return;
     }
 
@@ -226,122 +250,8 @@ function keyReleased() {
     }
 }
 
-class Bullet {
-    constructor(x, y, r, v) {
-        this.x = x;
-        this.y = y;
-        this.v = v;
-        this.r = r;
-        this.draw = function () {
-            point(this.x, this.y);
-        };
-
-        this.update = function() {
-            this.x += cos(this.r)*this.v;
-            this.y += sin(this.r)*this.v;
-        };
-        this.update = function() {
-            this.x += cos(r)*this.v;
-            this.y += sin(r)*this.v;
-        }
-    }
-}
-
-class Player {
-    constructor(id, c, x, y, r, v) {
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.v = v;
-        this.c = c;
-
-        this.draw = function() {
-            translate(this.x, this.y);
-            rotate(this.r);
-            stroke(this.c);
-            rect(0, 0, 20, 15);
-            rect(10,0,15,3);
-            rotate(-this.r);
-            translate(-this.x, -this.y);
-        };
-
-        this.update = function() {
-            if (inputs[0])
-                this.rotate(-rotIncrease);
-            if (inputs[1])
-                this.rotate(rotIncrease);
-            if (inputs[2])
-                this.v += acceleration;
-            if (inputs[3])
-                this.v -= acceleration;
-
-            this.v = cap(this.v, 0, maxV);
-            
-            this.x += cos(this.r)*this.v;
-            this.y += sin(this.r)*this.v;
-            
-            this.x = cap(this.x, 0, width);
-            this.y = cap(this.y, 0, height);
-
-            socket.emit('update_player', {
-                'x': this.x,
-                'y': this.y,
-                'r': this.r,
-                'v': this.v
-            }
-  )
 
 
-        };
-
-        this.rotate = function(dr) {
-            this.r += dr;
-        };
-    }
-}
-
-class Enemy {
-    constructor(id, c, x, y, r, v) {
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.v = v;
-        this.c = c;
-
-        this.draw = function() {
-            translate(this.x, this.y);
-            rotate(this.r);
-            stroke(this.c);
-            rect(0, 0, 20, 15);
-            rect(10,0,15,3);
-            rotate(-this.r);
-            translate(-this.x, -this.y);
-        };
-
-        this.update = function() {
-            if (currentState.players[this.id]) {
-                this.x = currentState.players[this.id]['x'];
-                this.y = currentState.players[this.id]['y'];
-                this.r = currentState.players[this.id]['r'];
-                this.v = currentState.players[this.id]['v'];
-
-                this.v = cap(this.v, 0, maxV);
-                
-                this.x += cos(this.r)*this.v;
-                this.y += sin(this.r)*this.v;
-                
-                this.x = cap(this.x, 0, width);
-                this.y = cap(this.y, 0, height);
-            }
-        };
-
-        this.rotate = function(dr) {
-            this.r += dr;
-        };
-    }
-}
 
 function cap(x, min, max) {
     if (min <= x && x <= max)
