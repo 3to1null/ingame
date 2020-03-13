@@ -143,7 +143,6 @@ function setup() {
 
     createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
-    
 }
 
 function draw() {
@@ -164,8 +163,11 @@ function draw() {
         enemies[i].draw();
     }
     // -- debugging 
-    document.getElementById("1").innerHTML = Object.keys(currentState.players).length;
-    /*document.getElementById("2").innerHTML = state.players[socket.id]['id'];
+    if (Object.keys(currentState.players).length == 1) {
+        document.getElementById("0").innerHTML = "1 player currently connected";
+    } else {
+        document.getElementById("0").innerHTML = Object.keys(currentState.players).length + " players currently connected";
+    }/*document.getElementById("2").innerHTML = state.players[socket.id]['id'];
     document.getElementById("3").innerHTML = "";
     document.getElementById("4").innerHTML = ""; */
 }
