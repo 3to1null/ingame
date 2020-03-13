@@ -17,6 +17,15 @@ let tankBeginY = 0;
 let tankBeginR = 0;
 let tankBeginV = 0;
 
+let screenWidth = 400;
+let screenHeight = 400;
+
+let leftKey = 37;
+let rightKey = 39;
+let upKey = 38;
+let downKey = 40;
+let fireKey = 32;
+
 let RED;
 let YELLOW;
 let GREEN;
@@ -88,7 +97,8 @@ function initPlayers(data) {
         if (id == socket.id) {
             //console.log("match!");
             player = new Player(id, GREEN, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
-        } if (true) {
+        //} if (true) {
+        } else {
             //console.log("no match :(");
             enemies.push(new Enemy(id, RED, data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
         }
@@ -101,7 +111,7 @@ function addPlayer(id, player) {
     enemies.push(
         new Enemy(
             id, 
-            color(255,0,0), 
+            RED, 
             player.x, 
             player.y, 
             player.r, 
@@ -130,10 +140,8 @@ function setup() {
     CYAN = color(0,255,255);
     BLUE = color(0,0,255);
     PURPLE = color(255,0,255);
-    
 
-    var canvas = createCanvas(400, 400);
-    canvas.parent('canvasholder');
+    createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
     
 }
@@ -179,7 +187,7 @@ function updateCurrentState(){
             if(currentState.players[key] !== undefined){
                 const cps = currentState.players[key];
 
-                const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05);
+                const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05); //waar komen deze 1.05 vandaan?
                 const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
 
                 const max_delta_x = abs(cos(new_r) * max(cps.v, pps.v, nps.v));
@@ -215,20 +223,21 @@ function updateCurrentState(){
 
 function keyPressed() {
     switch (keyCode) {
-        case 37:
+        case leftKey:
             inputs[0] = true;
             break;
-        case 38:
-            inputs[2] = true;
-            break;
-        case 39:
+        case rightKey:
             inputs[1] = true;
             break;
-        case 40:
+        case upKey:
+            inputs[2] = true;
+            break;
+        case downKey:
             inputs[3] = true;
             break;
-        case 32:
-            //fire
+        case fireKey:
+            inputs[4] = true;
+            break;
         default:
             break;
     }
@@ -236,25 +245,25 @@ function keyPressed() {
 
 function keyReleased() {
     switch (keyCode) {
-        case 37:
+        case leftKey:
             inputs[0] = false;
             break;
-        case 38:
-            inputs[2] = false;
-            break;
-        case 39:
+        case rightKey:
             inputs[1] = false;
             break;
-        case 40:
+        case upKey:
+            inputs[2] = false;
+            break;
+        case downKey:
             inputs[3] = false;
             break;
-        //case 32:
-        //    inputs[4] = false;
+        case fireKey:
+            inputs[4] = false;
+            break;
         default:
             break;
     }
 }
-
 
 function drawTank(x,y,r,c) {
     translate(x, y);
@@ -265,7 +274,6 @@ function drawTank(x,y,r,c) {
     rotate(-r);
     translate(-x, -y);
 }
-
 
 function cap(x, min, max) {
     if (min <= x && x <= max)
