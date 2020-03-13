@@ -1,5 +1,3 @@
-const socketLocation = 'timklein.tk:8009';
-
 let isInit = false;
 
 let maxV = 3;
