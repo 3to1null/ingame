@@ -29,13 +29,14 @@ class Player {
         this.c = c;
 
         this.draw = function() {
-            translate(this.x, this.y);
+            /*translate(this.x, this.y);
             rotate(this.r);
             stroke(this.c);
             rect(0, 0, tankLength, tankWidth);
             rect(barrelOffSet,0,barrelOffSet + barrelLength,barrelWidth);
             rotate(-this.r);
-            translate(-this.x, -this.y);
+            translate(-this.x, -this.y); */
+            drawTank(this.x, this.y, this.r, this.c);
         };
 
         this.update = function() {
@@ -83,13 +84,7 @@ class Enemy {
         this.c = c;
 
         this.draw = function() {
-            translate(this.x, this.y);
-            rotate(this.r);
-            stroke(this.c);
-            rect(0, 0, 20, 15);
-            rect(10,0,15,3);
-            rotate(-this.r);
-            translate(-this.x, -this.y);
+            drawTank(this.x, this.y, this.r, this.c);
         };
 
         this.update = function() {

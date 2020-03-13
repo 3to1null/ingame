@@ -12,6 +12,11 @@ let barrelLength = 5;
 let barrelWidth = 3;
 let barrelOffSet = 10;
 
+let tankBeginX = 0;
+let tankBeginY = 0;
+let tankBeginR = 0;
+let tankBeginV = 0;
+
 let RED;
 let YELLOW;
 let GREEN;
@@ -82,10 +87,10 @@ function initPlayers(data) {
         //console.log("checking id: " + id);
         if (id == socket.id) {
             //console.log("match!");
-            player = new Player(id, color(0,255,0), 100, 100, 0, 0);
+            player = new Player(id, GREEN, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
         } if (true) {
             //console.log("no match :(");
-            enemies.push(new Enemy(id, color(255,0,0), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
+            enemies.push(new Enemy(id, RED, data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
         }
     }    
 }
@@ -251,6 +256,15 @@ function keyReleased() {
 }
 
 
+function drawTank(x,y,r,c) {
+    translate(x, y);
+    rotate(r);
+    stroke(c);
+    rect(0, 0, tankLength, tankWidth);
+    rect(barrelOffSet,0,barrelOffSet + barrelLength,barrelWidth);
+    rotate(-r);
+    translate(-x, -y);
+}
 
 
 function cap(x, min, max) {
