@@ -71,7 +71,7 @@ class Player extends Tank {
             this.v -= acceleration;
         }
 
-        this.tr = tan((mouseY - this.y)/(mouseX - this.x))
+        this.tr = atan2(mouseY - this.y, mouseX - this.x)
         
         super.update(); // Tank.update() function
 

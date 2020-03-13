@@ -275,7 +275,7 @@ function drawTank(x, y, r, c, tr) {
     rotate(tr);
     rect(barrelOffSet, 0, barrelOffSet + barrelLength, barrelWidth);
     rotate(-tr);
-
+    
     translate(-x, -y);
 }
 
