@@ -20,17 +20,21 @@ class Bullet {
 }
 
 class Tank {
-    constructor(id, c, x, y, r, v) {
+    constructor(id, c, x, y, r, v, tr) {
         this.id = id;
+        
         this.x = x;
         this.y = y;
         this.r = r;
         this.v = v;
+
+        this.tr = tr;
+
         this.c = c;
     }
 
     draw() {
-        drawTank(this.x, this.y, this.r, this.c);
+        drawTank(this.x, this.y, this.r, this.c, this.tr);
     };
 
     update() {
@@ -46,18 +50,28 @@ class Tank {
     rotate(dr) {
         this.r += dr;
     }
+
+    rotateTurret(dr){
+        this.tr += dr;
+    }
 }
 
 class Player extends Tank {
     update() {
-        if (inputs[0])
+        if (inputs.left){
             this.rotate(-rotIncrease);
-        if (inputs[1])
+        }
+        if (inputs.right){
             this.rotate(rotIncrease);
-        if (inputs[2])
+        }
+        if (inputs.up){
             this.v += acceleration;
-        if (inputs[3])
+        }
+        if (inputs.down){
             this.v -= acceleration;
+        }
+
+        this.tr = tan((mouseY - this.y)/(mouseX - this.x))
         
         super.update(); // Tank.update() function
 

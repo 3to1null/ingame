@@ -34,7 +34,15 @@ let PURPLE;
 let player; 
 let enemies = [];
 
-let inputs = [false,false,false,false,false]; // left, right, up, down, fire
+let inputs = {
+    'left': false,
+    'right': false,
+    'up': false,
+    'down': false,
+    'fire': false,
+    'turretLeft': false,
+    'turrentRight': false
+}
 let bullets = [];
 
 // ------- server recieves
@@ -160,14 +168,6 @@ function draw() {
         enemies[i].update();
         enemies[i].draw();
     }
-    // -- debugging 
-    if (Object.keys(currentState.players).length == 1) {
-        document.getElementById("0").innerHTML = "1 player currently connected";
-    } else {
-        document.getElementById("0").innerHTML = Object.keys(currentState.players).length + " players currently connected";
-    }/*document.getElementById("2").innerHTML = state.players[socket.id]['id'];
-    document.getElementById("3").innerHTML = "";
-    document.getElementById("4").innerHTML = ""; */
 }
 
 function updateCurrentState(){
@@ -224,19 +224,19 @@ function updateCurrentState(){
 function keyPressed() {
     switch (keyCode) {
         case leftKey:
-            inputs[0] = true;
+            inputs.left = true;
             break;
         case rightKey:
-            inputs[1] = true;
+            inputs.right = true;
             break;
         case upKey:
-            inputs[2] = true;
+            inputs.up = true;
             break;
         case downKey:
-            inputs[3] = true;
+            inputs.down = true;
             break;
         case fireKey:
-            inputs[4] = true;
+            inputs.fire = true;
             break;
         default:
             break;
@@ -246,32 +246,36 @@ function keyPressed() {
 function keyReleased() {
     switch (keyCode) {
         case leftKey:
-            inputs[0] = false;
+            inputs.left = false;
             break;
         case rightKey:
-            inputs[1] = false;
+            inputs.right = false;
             break;
         case upKey:
-            inputs[2] = false;
+            inputs.up = false;
             break;
         case downKey:
-            inputs[3] = false;
+            inputs.down = false;
             break;
         case fireKey:
-            inputs[4] = false;
+            inputs.fire = false;
             break;
         default:
             break;
     }
 }
 
-function drawTank(x,y,r,c) {
+function drawTank(x, y, r, c, tr) {
     translate(x, y);
     rotate(r);
     stroke(c);
     rect(0, 0, tankLength, tankWidth);
-    rect(barrelOffSet,0,barrelOffSet + barrelLength,barrelWidth);
     rotate(-r);
+
+    rotate(tr);
+    rect(barrelOffSet, 0, barrelOffSet + barrelLength, barrelWidth);
+    rotate(-tr);
+
     translate(-x, -y);
 }
 
