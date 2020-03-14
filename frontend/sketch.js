@@ -6,9 +6,9 @@ let rotIncrease = 0.05;
 
 let tankWidth = 15;
 let tankLength = 20;
-let barrelLength = 5;
+let barrelLength = 20;
 let barrelWidth = 3;
-let barrelOffSet = 10;
+let barrelOffSet = 5;
 
 let tankBeginX = 0;
 let tankBeginY = 0;
@@ -268,14 +268,21 @@ function keyReleased() {
 function drawTank(x, y, r, c, tr) {
     translate(x, y);
     rotate(r);
+
     stroke(c);
     rect(0, 0, tankLength, tankWidth);
+
+    translate(barrelOffSet/2, 0);
     rotate(-r);
 
     rotate(tr);
-    rect(barrelOffSet, 0, barrelOffSet + barrelLength, barrelWidth);
+    rectMode(CORNER);
+    rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
+    rectMode(CENTER);
     rotate(-tr);
-    
+
+    translate(-barrelOffSet/2, 0);
+    rotate(-r);
     translate(-x, -y);
 }
 
