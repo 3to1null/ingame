@@ -189,6 +189,8 @@ function updateCurrentState(){
 
                 const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05); //waar komen deze 1.05 vandaan?
                 const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
+                const new_tr = linearInterAngle(pps['tr'], nps['tr'], progress);
+                console.log(progress, new_tr);
 
                 const max_delta_x = abs(cos(new_r) * max(cps.v, pps.v, nps.v));
                 const new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
@@ -201,6 +203,7 @@ function updateCurrentState(){
                     'y': new_y,
                     'r': new_r,
                     'v': new_v,
+                    'tr': new_tr
                 }
 
             }else{
@@ -208,7 +211,8 @@ function updateCurrentState(){
                     'x': linearInter(pps['x'], nps['x'], progress),
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
-                    'v': nps['v']
+                    'v': nps['v'],
+                    'r': linearInter(pps['tr'], nps['tr'], progress),
                 }
             }
 
@@ -266,9 +270,10 @@ function keyReleased() {
 }
 
 function drawTank(x, y, r, c, tr) {
+    push();
+
     translate(x, y);
     rotate(r);
-
     stroke(c);
     rect(0, 0, tankLength, tankWidth);
 
@@ -278,12 +283,8 @@ function drawTank(x, y, r, c, tr) {
     rotate(tr);
     rectMode(CORNER);
     rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
-    rectMode(CENTER);
-    rotate(-tr);
 
-    translate(-barrelOffSet/2, 0);
-    rotate(-r);
-    translate(-x, -y);
+    pop();
 }
 
 function cap(x, min, max) {
@@ -296,4 +297,10 @@ function cap(x, min, max) {
 
 function linearInter(start, end, progress){
     return (end - start) * progress + start;
+}
+function linearInterAngle(start, end, progress){
+    start = start + Math.PI;
+    end = end + Math.PI;
+    let delta_angle = (end-start) % Math.PI * 2;
+    return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
