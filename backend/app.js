@@ -16,7 +16,8 @@ io.on('connection', (socket) => {
     "x": 0,
     "y": 0,
     "r": 0,
-    "v": 0
+    "v": 0,
+    "tr": 0,
   };
 
   // Give client time to load before sending state.
@@ -43,4 +44,4 @@ io.on('connection', (socket) => {
 // Broadcast game state
 setInterval(() => {
   io.emit('update_state', state)
-}, 30)
+}, 50)

@@ -20,17 +20,21 @@ class Bullet {
 }
 
 class Tank {
-    constructor(id, c, x, y, r, v) {
+    constructor(id, c, x, y, r, v, tr) {
         this.id = id;
+        
         this.x = x;
         this.y = y;
         this.r = r;
         this.v = v;
+
+        this.tr = tr;
+
         this.c = c;
     }
 
     draw() {
-        drawTank(this.x, this.y, this.r, this.c);
+        drawTank(this.x, this.y, this.r, this.c, this.tr);
     };
 
     update() {
@@ -46,18 +50,28 @@ class Tank {
     rotate(dr) {
         this.r += dr;
     }
+
+    rotateTurret(dr){
+        this.tr += dr;
+    }
 }
 
 class Player extends Tank {
     update() {
-        if (inputs[0])
+        if (keyIsDown(controlls.left)){
             this.rotate(-rotIncrease);
-        if (inputs[1])
+        }
+        if (keyIsDown(controlls.right)){
             this.rotate(rotIncrease);
-        if (inputs[2])
+        }
+        if (keyIsDown(controlls.up)){
             this.v += acceleration;
-        if (inputs[3])
+        }
+        if (keyIsDown(controlls.down)){
             this.v -= acceleration;
+        }
+
+        this.tr = atan2(mouseY - this.y, mouseX - this.x)
         
         super.update(); // Tank.update() function
 
@@ -65,7 +79,8 @@ class Player extends Tank {
             'x': this.x,
             'y': this.y,
             'r': this.r,
-            'v': this.v
+            'v': this.v,
+            'tr': this.tr,
         });
     }
 }
@@ -77,6 +92,8 @@ class Enemy extends Tank {
             this.y = currentState.players[this.id]['y'];
             this.r = currentState.players[this.id]['r'];
             this.v = currentState.players[this.id]['v'];
+            this.tr = currentState.players[this.id]['tr'];
+
 
             super.update();
         }
