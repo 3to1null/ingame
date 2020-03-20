@@ -33,6 +33,9 @@ let PURPLE;
 
 let player; 
 let enemies = [];
+let bullets = [];
+
+let colors;
 
 let controlls = {
     'changing': 0, // none, left, right, up, down, fire
@@ -46,16 +49,14 @@ let controlls = {
     //'turrentRight': false
 }
 
-let bullets = [];
-
-// ------- server receives
+// --- server receives
 let bufferStates = [];
 let currentState = {
     "players": {},
     "timestamp": Date.now()
 };
 
-// make connection
+// --- make connection
 var socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
@@ -74,7 +75,7 @@ socket.on('new', (data) => { // new player
     addPlayer(data);
 });
 
-// update from server
+// --- update from server
 socket.on('update_state', (data) => {
     const now = Date.now()
 
@@ -96,7 +97,7 @@ socket.on('delete', (data) => {
     removePlayer(data['id']);
 });
 
-// what to do with server recieves
+// --- what to do with server recieves
 
 function initPlayers(data) {
     console.log("init players");
@@ -105,11 +106,11 @@ function initPlayers(data) {
         //console.log("checking id: " + id);
         if (id == socket.id) {
             //console.log("match!");
-            player = new Player(id, GREEN, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
+            player = new Player(id, 2, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
         //} if (true) {
         } else {
             //console.log("no match :(");
-            enemies.push(new Enemy(id, RED, data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
+            enemies.push(new Enemy(id, randEnemyColor(), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
         }
     }    
 }
@@ -120,13 +121,16 @@ function addPlayer(id, player) {
     enemies.push(
         new Enemy(
             id, 
-            RED, 
+            randEnemyColor(), // unique color for every enemy
             player.x, 
             player.y, 
             player.r, 
             player.v
         )
     );
+    //console.log(colors[colorIndex]);
+    //colorIndex++;
+    //colorIndex = colorIndex%(colors.length -1);
     console.log(enemies)
     console.log(player)
 }
@@ -140,7 +144,7 @@ function removePlayer(id) {
     }
 }
 
-// ------- main game code
+// --- main game code
 
 function setup() {
     RED = color(255,0,0);
@@ -149,6 +153,8 @@ function setup() {
     CYAN = color(0,255,255);
     BLUE = color(0,0,255);
     PURPLE = color(255,0,255);
+
+    colors = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
 
     createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
@@ -171,6 +177,8 @@ function draw() {
         enemies[i].update();
         enemies[i].draw();
     }
+
+    debugPlayers();
 }
 
 function updateCurrentState(){
@@ -215,7 +223,7 @@ function updateCurrentState(){
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
                     'v': nps['v'],
-                    'r': linearInter(pps['tr'], nps['tr'], progress),
+                    'tr': linearInter(pps['tr'], nps['tr'], progress),
                 }
             }
 
@@ -292,12 +300,31 @@ function keyPressed() {
     }
 }
 
+// --- functions
+
+function debugPlayers() {
+    let table = document.getElementById("playerTable");
+    table.innerHTML = `<tr><th>id</th><th>x</th><th>y</th><th>c</th></tr>`
+    for (key in currentState.players) {
+        let subject = currentState.players[key];
+        table.innerHTML += `<tr><td>${key}</td><td>${subject.x}</td><td>${subject.y}</td><td>${subject.c}</td></tr>`;
+        //console.log(currentState.players[key]);
+    }
+}
+
+function randEnemyColor() {
+    return int(random(colors.length));
+}
+
 function drawTank(x, y, r, c, tr) {
     push();
 
     translate(x, y);
     rotate(r);
-    stroke(c);
+    //console.log(c);
+    stroke(colors[c]);
+    //console.log(c);
+    //stroke(RED);
     rect(0, 0, tankLength, tankWidth);
 
     translate(barrelOffSet/2, 0);

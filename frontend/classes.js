@@ -81,6 +81,7 @@ class Player extends Tank {
             'r': this.r,
             'v': this.v,
             'tr': this.tr,
+            //'c': this.c,
         });
     }
 }
@@ -93,7 +94,6 @@ class Enemy extends Tank {
             this.r = currentState.players[this.id]['r'];
             this.v = currentState.players[this.id]['v'];
             this.tr = currentState.players[this.id]['tr'];
-
 
             super.update();
         }

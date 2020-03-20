@@ -2,7 +2,23 @@
 <html>
     <head>
         <title>ingame</title>
-        
+        <style>
+            table {
+              font-family: arial, sans-serif;
+              border-collapse: collapse;
+              width: 100%;
+            }
+            
+            td, th {
+              border: 1px solid #dddddd;
+              text-align: left;
+              padding: 8px;
+            }
+            
+            tr:nth-child(even) {
+              background-color: #dddddd;
+            }
+        </style>
     </head>
     <body>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
@@ -14,11 +30,18 @@
         <p id="controlls" onClick="changeControlls()">click <u>here</u> to change controlls</p>
         <input type="checkbox" id="fireWithMouse" onchange="changeFire()" checked="true"> fire with the mouse
         <!--<p id="controllText" style="visibility: hidden;">listening for left input...</p> -->
-        <h1 id="0">debugging</h1>
-        <p id="1"></p>
-        <p id="2"></p>
-        <p id="3"></p>
-        <p id="4"></p>
+        <div id="debugging">
+
+            <h1 id="0">debugging</h1>
+            <table id="playerTable">
+                <tr>
+                    <th>Players:</th>
+                    <th id="playerCount"></th>
+                </tr>
+            </table>
+
+        </div>
+        
     </body>
 </html>
 
