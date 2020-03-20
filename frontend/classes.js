@@ -58,16 +58,16 @@ class Tank {
 
 class Player extends Tank {
     update() {
-        if (inputs.left){
+        if (keyIsDown(controlls.left)){
             this.rotate(-rotIncrease);
         }
-        if (inputs.right){
+        if (keyIsDown(controlls.right)){
             this.rotate(rotIncrease);
         }
-        if (inputs.up){
+        if (keyIsDown(controlls.up)){
             this.v += acceleration;
         }
-        if (inputs.down){
+        if (keyIsDown(controlls.down)){
             this.v -= acceleration;
         }
 

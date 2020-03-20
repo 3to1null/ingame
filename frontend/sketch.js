@@ -18,11 +18,11 @@ let tankBeginV = 0;
 let screenWidth = 400;
 let screenHeight = 400;
 
-let leftKey = 37;
-let rightKey = 39;
-let upKey = 38;
-let downKey = 40;
-let fireKey = 32;
+let leftKey = 65;
+let rightKey = 68;
+let upKey = 87;
+let downKey = 83;
+let fireKey;
 
 let RED;
 let YELLOW;
@@ -34,18 +34,21 @@ let PURPLE;
 let player; 
 let enemies = [];
 
-let inputs = {
-    'left': false,
-    'right': false,
-    'up': false,
-    'down': false,
-    'fire': false,
-    'turretLeft': false,
-    'turrentRight': false
+let controlls = {
+    'changing': 0, // none, left, right, up, down, fire
+    'left': leftKey,
+    'right': rightKey,
+    'up': upKey,
+    'down': downKey,
+    'fireWithMouse': true,
+    'fire': fireKey,
+    //'turretLeft': false,
+    //'turrentRight': false
 }
+
 let bullets = [];
 
-// ------- server recieves
+// ------- server receives
 let bufferStates = [];
 let currentState = {
     "players": {},
@@ -190,7 +193,7 @@ function updateCurrentState(){
                 const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05); //waar komen deze 1.05 vandaan?
                 const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
                 const new_tr = linearInterAngle(pps['tr'], nps['tr'], progress);
-                console.log(progress, new_tr);
+                //console.log(progress, new_tr);
 
                 const max_delta_x = abs(cos(new_r) * max(cps.v, pps.v, nps.v));
                 const new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
@@ -218,53 +221,73 @@ function updateCurrentState(){
 
 
         }else{
-            console.log(bufferStates[1])
+            //console.log(bufferStates[1])
             addPlayer(key, nps)
         }
 
     };
 }
 
-function keyPressed() {
-    switch (keyCode) {
-        case leftKey:
-            inputs.left = true;
-            break;
-        case rightKey:
-            inputs.right = true;
-            break;
-        case upKey:
-            inputs.up = true;
-            break;
-        case downKey:
-            inputs.down = true;
-            break;
-        case fireKey:
-            inputs.fire = true;
-            break;
-        default:
-            break;
-    }
+// --- controlls
+
+function changeControlls() {
+    controlls.changing = 1;
+    let textBox = document.getElementById("controlls");
+    textBox.innerHTML = "listening for left input...";
 }
 
-function keyReleased() {
-    switch (keyCode) {
-        case leftKey:
-            inputs.left = false;
+function changeFire () {
+    document.getElementById("fireWithMouse").blur();
+    if (document.getElementById("fireWithMouse").checked) {
+        controlls.fireWithMouse = true;
+    } else {
+        controlls.fireWithMouse = false;
+    }
+    changeControlls();
+}
+
+
+function keyPressed() {
+    let textBox = document.getElementById("controlls");
+    //let textButton = document.getElementById("controlls");
+    
+    switch(controlls.changing) {
+        case 0: // the controlls dont need changing
             break;
-        case rightKey:
-            inputs.right = false;
+        case 1: // the left needs changing
+            controlls.left = keyCode;
+            textBox.innerHTML = "listening for right input...";
+            controlls.changing++;
             break;
-        case upKey:
-            inputs.up = false;
+        case 2: // the right needs changing
+            controlls.right = keyCode;
+            textBox.innerHTML = "listening for up input...";
+            controlls.changing++;
             break;
-        case downKey:
-            inputs.down = false;
+        case 3: // the up needs changing
+            controlls.up = keyCode;
+            textBox.innerHTML = "listening for down input...";
+            controlls.changing++;
             break;
-        case fireKey:
-            inputs.fire = false;
+        case 4: // the down needs changing
+            controlls.down = keyCode;
+            if (controlls.fireWithMouse) { // end configuration early
+                textBox.innerHTML = "click <u>here</u> to change controlls";
+                //textBox.style.visibility = "invisible";
+                controlls.changing = 0;
+            } else {
+                textBox.innerHTML = "listening for fire input...";
+                controlls.changing++;
+            }
+            break;
+        case 5: // the fire needs changing
+            controlls.fire = keyCode;
+            textBox.innerHTML = "click <u>here</u> to change controlls";
+            //textBox.style.visibility = "invisible";
+            controlls.changing = 0;
             break;
         default:
+            alert("something went very wrong, this is not supposed to happen! error code 69 lmao");
             break;
     }
 }
