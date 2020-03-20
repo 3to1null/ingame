@@ -24,13 +24,6 @@ let upKey = 87;
 let downKey = 83;
 let fireKey;
 
-let RED;
-let YELLOW;
-let GREEN;
-let CYAN;
-let BLUE;
-let PURPLE;
-
 let player; 
 let enemies = [];
 let bullets = [];
@@ -97,20 +90,26 @@ socket.on('delete', (data) => {
     removePlayer(data['id']);
 });
 
-// --- what to do with server recieves
 
 function initPlayers(data) {
     console.log("init players");
     console.log(data);
     for (var id in data.state.players) {
-        //console.log("checking id: " + id);
         if (id == socket.id) {
-            //console.log("match!");
-            player = new Player(id, 2, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
-        //} if (true) {
+            let colorKeys = Object.keys(colors);
+            let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
+            // randomColor = "CYAN";
+            player = new Player(id, randomColor, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
         } else {
-            //console.log("no match :(");
-            enemies.push(new Enemy(id, randEnemyColor(), data.state.players[id]['x'], data.state.players[id]['y'], data.state.players[id]['r'], data.state.players[id]['v']));
+            let currentPlayer = data.state.players[id];
+            enemies.push(new Enemy(
+                id, 
+                currentPlayer['c'], 
+                currentPlayer['x'], 
+                currentPlayer['y'], 
+                currentPlayer['r'], 
+                currentPlayer['v']
+            ));
         }
     }    
 }
@@ -121,16 +120,13 @@ function addPlayer(id, player) {
     enemies.push(
         new Enemy(
             id, 
-            randEnemyColor(), // unique color for every enemy
+            player.c,
             player.x, 
             player.y, 
             player.r, 
             player.v
         )
     );
-    //console.log(colors[colorIndex]);
-    //colorIndex++;
-    //colorIndex = colorIndex%(colors.length -1);
     console.log(enemies)
     console.log(player)
 }
@@ -147,14 +143,14 @@ function removePlayer(id) {
 // --- main game code
 
 function setup() {
-    RED = color(255,0,0);
-    YELLOW = color(255,255,0);
-    GREEN = color(0,255,0);
-    CYAN = color(0,255,255);
-    BLUE = color(0,0,255);
-    PURPLE = color(255,0,255);
-
-    colors = [RED, YELLOW, GREEN, CYAN, BLUE, PURPLE];
+    colors = {
+        'RED': color(255,0,0),
+        'YELLOW': color(255,255,0),
+        'GREEN': color(0,255,0),
+        'CYAN': color(0,255,255),
+        'BLUE': color(0,0,255),
+        'PURPLE': color(255,0,255),
+    }
 
     createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
@@ -229,7 +225,7 @@ function updateCurrentState(){
 
 
         }else{
-            //console.log(bufferStates[1])
+            console.log('New player (step 1)')
             addPlayer(key, nps)
         }
 
@@ -312,19 +308,12 @@ function debugPlayers() {
     }
 }
 
-function randEnemyColor() {
-    return int(random(colors.length));
-}
-
 function drawTank(x, y, r, c, tr) {
     push();
 
     translate(x, y);
     rotate(r);
-    //console.log(c);
     stroke(colors[c]);
-    //console.log(c);
-    //stroke(RED);
     rect(0, 0, tankLength, tankWidth);
 
     translate(barrelOffSet/2, 0);
