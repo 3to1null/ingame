@@ -18,6 +18,7 @@ io.on('connection', (socket) => {
     "r": 0,
     "v": 0,
     "tr": 0,
+    "c": 0,
   };
 
   // Give client time to load before sending state.
