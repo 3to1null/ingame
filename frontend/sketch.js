@@ -71,6 +71,15 @@ socket.on('new', (data) => { // new player
 // --- update from server
 socket.on('update_state', (data) => {
     const now = Date.now()
+    console.log(data.players)
+    if(Object.keys(data.players).length > enemies.length + 1){
+        let enemyIDs = enemies.map(e => e.id);
+        for (let id in data.players){
+            if(id !== socket.id && !enemyIDs.includes(id)){
+                addPlayer(id, data.players[id])
+            }
+        }
+    }
 
     bufferStates.push({
         'players': data['players'],
@@ -95,7 +104,7 @@ function initPlayers(data) {
     console.log("init players");
     console.log(data);
     for (var id in data.state.players) {
-        if (id == socket.id) {
+        if (id === socket.id) {
             let colorKeys = Object.keys(colors);
             let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
             // randomColor = "CYAN";
@@ -116,7 +125,7 @@ function initPlayers(data) {
 
 function addPlayer(id, player) {
     console.log(`${id} joined.`);
-    bufferStates[0]['players'][id] = player; // update local players data
+    // bufferStates[0]['players'][id] = player; // update local players data
     enemies.push(
         new Enemy(
             id, 
@@ -224,9 +233,6 @@ function updateCurrentState(){
             }
 
 
-        }else{
-            console.log('New player (step 1)')
-            addPlayer(key, nps)
         }
 
     };
