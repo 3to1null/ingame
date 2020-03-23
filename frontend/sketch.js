@@ -58,18 +58,11 @@ let currentState = {
 var socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
-    //console.log("received init with data");
-    //console.log(data);
-    
-    //console.log("socket.id: " + socket.id);
     initPlayers(data);
     isInit = true;
 });
 
 socket.on('new', (data) => { // new player
-    //console.log("new player joins the game");
-    //console.log(data);
-
     addPlayer(data);
 });
 
@@ -119,21 +112,21 @@ function initPlayers(data) {
     }    
 }
 
-function addPlayer(id, player) {
+function addPlayer(id, newPlayer) {
     console.log(`${id} joined.`);
-    bufferStates[0]['players'][id] = player; // update local players data
+    bufferStates[0]['players'][id] = newPlayer; // update local players data
     enemies.push(
         new Enemy(
             id, 
-            player.c,
-            player.x, 
-            player.y, 
-            player.r, 
-            player.v
+            newPlayer.c,
+            newPlayer.x, 
+            newPlayer.y, 
+            newPlayer.r, 
+            newPlayer.v
         )
     );
     console.log(enemies)
-    console.log(player)
+    console.log(newPlayer)
 }
 
 function removePlayer(id) {
