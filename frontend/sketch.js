@@ -62,9 +62,9 @@ socket.on('init', (data) => { // first connection
     isInit = true;
 });
 
-socket.on('new', (data) => { // new player
+/*socket.on('new', (data) => { // new player // obsolete
     addPlayer(data);
-});
+});*/
 
 // --- update from server
 socket.on('update_state', (data) => {
@@ -91,15 +91,17 @@ socket.on('delete', (data) => {
 
 function initPlayers(data) {
     console.log("init players");
-    console.log(data);
+    console.log(data); // not getting c
     for (var id in data.state.players) {
-        if (id == socket.id) {
+        if (id == socket.id) { // you
             let colorKeys = Object.keys(colors);
             let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
             // randomColor = "CYAN";
             player = new Player(id, randomColor, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
-        } else {
+        } else { // someone els
             let currentPlayer = data.state.players[id];
+            console.log("currentPlayer:")
+            console.log(currentPlayer);
             enemies.push(new Enemy(
                 id, 
                 currentPlayer['c'], 
@@ -127,6 +129,7 @@ function addPlayer(id, newPlayer) {
     );
     console.log(enemies)
     console.log(newPlayer)
+    console.log(bufferStates);
 }
 
 function removePlayer(id) {
@@ -183,10 +186,10 @@ function updateCurrentState(){
 
     for (const [key, nps] of Object.entries(bufferStates[1].players)){
         if(key in bufferStates[0].players){
-            const pps = bufferStates[0].players[key];
+            const pps = bufferStates[0].players[key]; // PastPlayerState
 
-            if(currentState.players[key] !== undefined){
-                const cps = currentState.players[key];
+            if(currentState.players[key] !== undefined){ // als currentstate.player is defined
+                const cps = currentState.players[key]; // CurrentPlayerState
 
                 const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05); //waar komen deze 1.05 vandaan?
                 const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
@@ -204,16 +207,18 @@ function updateCurrentState(){
                     'y': new_y,
                     'r': new_r,
                     'v': new_v,
-                    'tr': new_tr
+                    'tr': new_tr,
+                    'c': pps['c'] // not sure
                 }
 
-            }else{
+            }else{ // als currentState.players[key] === undefined
                 currentState.players[key] = {
                     'x': linearInter(pps['x'], nps['x'], progress),
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
+                    'c': nps['c'],//"RED", // not sure
                 }
             }
 
@@ -324,10 +329,16 @@ function updateBullets() {
 
 function debugPlayers() {
     let table = document.getElementById("playerTable");
-    table.innerHTML = `<tr><th>id</th><th>x</th><th>y</th><th>c</th></tr>`
+    table.innerHTML = `<span>id</span><br>`
     for (key in currentState.players) {
         let subject = currentState.players[key];
-        table.innerHTML += `<tr><td>${key}</td><td>${subject.x}</td><td>${subject.y}</td><td>${subject.c}</td></tr>`;
+        if (socket.id == key) {
+            table.innerHTML += `<span style="background-color: ${subject.c}">${key} (you)<span><br>`;
+        } else {
+            table.innerHTML += `<span style="background-color: ${subject.c}">${key}</span><br>`;            
+        }
+        
+        
         //console.log(currentState.players[key]);
     }
 }
@@ -357,10 +368,6 @@ function cap(x, min, max) {
     if (min > x)
         return min;
     return max;
-}
-
-function isWithin(x, min, max) {
-    return (x > min && x < max);
 }
 
 function linearInter(start, end, progress){
