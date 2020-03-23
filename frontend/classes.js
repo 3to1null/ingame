@@ -1,23 +1,23 @@
 class Bullet {
-    constructor(x, y, r, v) {
+    constructor(x, y, r, c) {
+        this.c = c;
         this.x = x;
         this.y = y;
-        this.v = v;
+        this.v = bulletSpeed;
         this.r = r;
-        this.draw = function () {
-            point(this.x, this.y);
-        };
-
-        this.update = function() {
-            this.x += cos(this.r)*this.v;
-            this.y += sin(this.r)*this.v;
-        };
-        this.update = function() {
-            this.x += cos(r)*this.v;
-            this.y += sin(r)*this.v;
-        }
     }
+    draw() {
+        stroke(colors[this.c]);
+        point(this.x, this.y);
+    };
+
+    update() {
+        this.x += cos(this.r)*this.v;
+        this.y += sin(this.r)*this.v;
+    };
+
 }
+
 
 class Tank {
     constructor(id, c, x, y, r, v, tr) {
@@ -34,7 +34,22 @@ class Tank {
     }
 
     draw() {
-        drawTank(this.x, this.y, this.r, this.c, this.tr);
+        //drawTank(this.x, this.y, this.r, this.c, this.tr);
+        push();
+
+        translate(this.x, this.y);
+        rotate(this.r);
+        stroke(colors[this.c]);
+        rect(0, 0, tankLength, tankWidth);
+
+        translate(barrelOffSet/2, 0);
+        rotate(-this.r);
+
+        rotate(this.tr);
+        rectMode(CORNER);
+        rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
+
+        pop();
     };
 
     update() {
@@ -53,6 +68,10 @@ class Tank {
 
     rotateTurret(dr){
         this.tr += dr;
+    }
+
+    fire() {
+        bullets.push(new Bullet(this.x + (barrelLength - barrelOffSet) * cos(this.tr), this.y + (barrelLength - barrelOffSet) * sin(this.tr), this.tr, this.c));
     }
 }
 
@@ -81,6 +100,7 @@ class Player extends Tank {
             'r': this.r,
             'v': this.v,
             'tr': this.tr,
+            'c': this.c,
         });
     }
 }
@@ -93,7 +113,7 @@ class Enemy extends Tank {
             this.r = currentState.players[this.id]['r'];
             this.v = currentState.players[this.id]['v'];
             this.tr = currentState.players[this.id]['tr'];
-
+            // this.c = currentState.players[this.id]['c']
 
             super.update();
         }
