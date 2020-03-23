@@ -1,8 +1,11 @@
+// #region variable declaration
+
 let isInit = false;
 
 let maxV = 3;
 let acceleration = 0.1;
 let rotIncrease = 0.05;
+let bulletSpeed = 5;
 
 let tankWidth = 15;
 let tankLength = 20;
@@ -15,7 +18,7 @@ let tankBeginY = 0;
 let tankBeginR = 0;
 let tankBeginV = 0;
 
-let screenWidth = 400;
+let screenWidth = 1000;
 let screenHeight = 400;
 
 let leftKey = 65;
@@ -42,7 +45,9 @@ let controlls = {
     //'turrentRight': false
 }
 
-// --- server receives
+// #endregion
+
+//#region server receives
 let bufferStates = [];
 let currentState = {
     "players": {},
@@ -139,10 +144,14 @@ function removePlayer(id) {
         }
     }
 }
+//#endregion
 
-// --- main game code
+//#region main game code
 
 function setup() {
+    createCanvas(screenWidth,screenHeight).parent('canvasholder');
+    rectMode(CENTER);
+    
     colors = {
         'RED': color(255,0,0),
         'YELLOW': color(255,255,0),
@@ -150,30 +159,22 @@ function setup() {
         'CYAN': color(0,255,255),
         'BLUE': color(0,0,255),
         'PURPLE': color(255,0,255),
-    }
-
-    createCanvas(screenWidth,screenHeight).parent('canvasholder');
-    rectMode(CENTER);
+    };
 }
 
 function draw() {
-    if(!isInit){
-        return;
-    }
-
+    if(!isInit){return;}
     updateCurrentState();
 
     background(51);
-    stroke(0);
-    text("fps: " + round(frameRate()), 5, 10);
+    /*stroke(0);
+    text("fps: " + round(frameRate()), 5, 10);*/
     
     player.update();
     player.draw();
-    for (var i = 0; i<enemies.length; i++) {
-        enemies[i].update();
-        enemies[i].draw();
-    }
 
+    updateEnemies();
+    updateBullets();
     debugPlayers();
 }
 
@@ -231,8 +232,9 @@ function updateCurrentState(){
 
     };
 }
+//#endregion
 
-// --- controlls
+//#region controlls
 
 function changeControlls() {
     controlls.changing = 1;
@@ -250,13 +252,14 @@ function changeFire () {
     changeControlls();
 }
 
-
 function keyPressed() {
+    //#region changing controlls DIT IS HECKA LELIJK
     let textBox = document.getElementById("controlls");
-    //let textButton = document.getElementById("controlls");
-    
     switch(controlls.changing) {
         case 0: // the controlls dont need changing
+            if (keyCode == controlls.fire) {
+                player.fire();
+            }
             break;
         case 1: // the left needs changing
             controlls.left = keyCode;
@@ -294,9 +297,37 @@ function keyPressed() {
             alert("something went very wrong, this is not supposed to happen! error code 69 lmao");
             break;
     }
+    //#endregion
 }
 
-// --- functions
+function mousePressed() {
+    if (controlls.fireWithMouse) {
+        player.fire();
+    }
+}
+
+//#endregion
+
+//#region functions
+
+function updateEnemies() { // maybe do something here to check the correct amount of enemies
+    for (var i = 0; i<enemies.length; i++) {
+        enemies[i].update();
+        enemies[i].draw();
+    }
+}
+
+function updateBullets() {
+    for (let i = bullets.length -1; i >= 0; i--) {
+        let b = bullets[i];
+        b.update();
+        if (b.x == cap(b.x,0,screenWidth) && b.y == cap(b.y,0,screenHeight)) {
+            bullets[i].draw();
+        } else {
+            bullets.splice(i,1);
+        }
+    }
+}
 
 function debugPlayers() {
     let table = document.getElementById("playerTable");
@@ -308,7 +339,8 @@ function debugPlayers() {
     }
 }
 
-function drawTank(x, y, r, c, tr) {
+// moved this to Tank.draw()
+/*function drawTank(x, y, r, c, tr) { 
     push();
 
     translate(x, y);
@@ -324,7 +356,7 @@ function drawTank(x, y, r, c, tr) {
     rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
 
     pop();
-}
+}*/
 
 function cap(x, min, max) {
     if (min <= x && x <= max)
@@ -332,6 +364,10 @@ function cap(x, min, max) {
     if (min > x)
         return min;
     return max;
+}
+
+function isWithin(x, min, max) {
+    return (x > min && x < max);
 }
 
 function linearInter(start, end, progress){
@@ -343,3 +379,5 @@ function linearInterAngle(start, end, progress){
     let delta_angle = (end-start) % Math.PI * 2;
     return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
+
+//#endregion
