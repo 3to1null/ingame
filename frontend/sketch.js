@@ -18,7 +18,7 @@ let tankBeginY = 0;
 let tankBeginR = 0;
 let tankBeginV = 0;
 
-let screenWidth = 1000;
+let screenWidth = 400;
 let screenHeight = 400;
 
 let leftKey = 65;
