@@ -6,27 +6,38 @@ console.log('Starting socket');
 
 app.listen(8009);
 
+const tickTime = 50
+
 const state = {
   "players":{}
 };
 
+const initWaitTime = 1000;
+
 io.on('connection', (socket) => {
-  // On connection
-  state["players"][socket.id] = {
+  let newPlayer = {
     "x": 0,
     "y": 0,
     "r": 0,
     "v": 0,
     "tr": 0,
-    "c": "RED",
+    "c": "red",
+    'name': "unnamed",
+    'bullets': [],
   };
 
-  // Give client time to load before sending state.
-  setTimeout(() => {
-    socket.emit('init', {
-      'state': state
-    });
-  }, 1000);
+  state["players"][socket.id] = newPlayer
+
+  // Emit new player to all other players
+  setTimeout(() => {socket.broadcast.emit('player_join', {
+      "id": socket.id,
+      "player": newPlayer
+  })}, initWaitTime);
+
+  // Emit state to new player
+  setTimeout(() => {socket.emit('init', {
+    'state': state
+  })}, initWaitTime);
 
 
   socket.on('update_player', (data) => {
@@ -43,6 +54,11 @@ io.on('connection', (socket) => {
 });
 
 // Broadcast game state
+let lastUpdate;
 setInterval(() => {
+  let update = Date.now();
+  if(update - lastUpdate > tickTime * 1.1){
+    console.log(`Spend ${lastUpdate - update}ms on a frame!`)
+  }
   io.emit('update_state', state)
-}, 50)
+}, tickTime)

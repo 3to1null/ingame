@@ -2,38 +2,42 @@
 
 let isInit = false;
 
+// --- speed of things
 let maxV = 3;
 let acceleration = 0.1;
 let rotIncrease = 0.05;
 let bulletSpeed = 5;
 
+// --- size of things
+let screenWidth = 400;
+let screenHeight = 400;
 let tankWidth = 15;
 let tankLength = 20;
 let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
 
+let hpWidth = 25;
+let hpHeight = 4;
+let hpOffset = 10;
+let nameOffset = 10;
+
+
+// --- begin of things
 let tankBeginX = 0;
 let tankBeginY = 0;
 let tankBeginR = 0;
 let tankBeginV = 0;
+let startHp = 100;
 
-let screenWidth = 400;
-let screenHeight = 400;
-
+// --- controls for things
 let leftKey = 65;
 let rightKey = 68;
 let upKey = 87;
 let downKey = 83;
 let fireKey;
 
-let player; 
-let enemies = [];
-let bullets = [];
-
-let colors;
-
-let controlls = {
+let controls = {
     'changing': 0, // none, left, right, up, down, fire
     'left': leftKey,
     'right': rightKey,
@@ -41,9 +45,41 @@ let controlls = {
     'down': downKey,
     'fireWithMouse': true,
     'fire': fireKey,
-    //'turretLeft': false,
-    //'turrentRight': false
 }
+
+// --- colors of things
+let colors;
+let hpBackgroundColor;
+let hpRedLine = 0.25;
+
+function initColors() {
+    colors = {
+        'black': color(0,0,0),
+        'white': color(255,255,255),
+        'red': color(255,0,0),
+        'yellow': color(255,255,0),
+        'green': color(0,255,0),
+        'cyan': color(0,255,255),
+        'blue': color(0,0,255),
+        'purple': color(255,0,255),
+    };
+
+    hpBackgroundColor = colors.black;
+}
+
+// --- instances of things
+let player; 
+let enemies = [];
+
+// --- misc things
+let names = {
+    'RED': "Romeo",
+    'YELLOW': "Yankee",
+    'GREEN': "Golf",
+    'CYAN': "Charlie",
+    'BLUE': "Bravo",
+    'PURPLE': "Papa",
+};
 
 // #endregion
 
@@ -58,24 +94,21 @@ let currentState = {
 var socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
-    //console.log("received init with data");
-    //console.log(data);
-    
-    //console.log("socket.id: " + socket.id);
     initPlayers(data);
     isInit = true;
 });
 
-socket.on('new', (data) => { // new player
-    //console.log("new player joins the game");
-    //console.log(data);
-
+/*socket.on('new', (data) => { // new player // obsolete
     addPlayer(data);
-});
+});*/
 
 // --- update from server
 socket.on('update_state', (data) => {
     const now = Date.now()
+    // console.log(data.players)
+    if(Object.keys(data.players).length > enemies.length + 1){
+        let enemyIDs = enemies.map(e => e.id);
+    }
 
     bufferStates.push({
         'players': data['players'],
@@ -89,6 +122,10 @@ socket.on('update_state', (data) => {
     }
 });
 
+socket.on('player_join', (data) => {
+    addPlayer(data['id'], data['player'])
+})
+
 socket.on('delete', (data) => {
     console.log("received a delete");
     console.log(data);
@@ -97,43 +134,40 @@ socket.on('delete', (data) => {
 
 
 function initPlayers(data) {
-    console.log("init players");
-    console.log(data);
+    console.debug("init players");
     for (var id in data.state.players) {
-        if (id == socket.id) {
+        if (id === socket.id) {
             let colorKeys = Object.keys(colors);
             let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
             // randomColor = "CYAN";
             player = new Player(id, randomColor, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
-        } else {
-            let currentPlayer = data.state.players[id];
+        } else { // someone els
+            let selectedPlayer = data.state.players[id];
             enemies.push(new Enemy(
                 id, 
-                currentPlayer['c'], 
-                currentPlayer['x'], 
-                currentPlayer['y'], 
-                currentPlayer['r'], 
-                currentPlayer['v']
+                selectedPlayer['c'], 
+                selectedPlayer['x'], 
+                selectedPlayer['y'], 
+                selectedPlayer['r'], 
+                selectedPlayer['tr'], 
+                selectedPlayer['v']
             ));
         }
     }    
 }
 
-function addPlayer(id, player) {
-    console.log(`${id} joined.`);
-    bufferStates[0]['players'][id] = player; // update local players data
+function addPlayer(id, newPlayer) {
+    console.debug(`${id} joined.`);
     enemies.push(
         new Enemy(
             id, 
-            player.c,
-            player.x, 
-            player.y, 
-            player.r, 
-            player.v
+            newPlayer.c,
+            newPlayer.x, 
+            newPlayer.y, 
+            newPlayer.r, 
+            newPlayer.v
         )
     );
-    console.log(enemies)
-    console.log(player)
 }
 
 function removePlayer(id) {
@@ -143,6 +177,11 @@ function removePlayer(id) {
             console.log(id + " left the game");
         }
     }
+    console.log(currentState)
+    delete currentState['players'][id];
+    delete bufferStates[0]['players'][id];
+    delete bufferStates[1]['players'][id];
+    console.log(currentState)
 }
 //#endregion
 
@@ -151,15 +190,7 @@ function removePlayer(id) {
 function setup() {
     createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
-    
-    colors = {
-        'RED': color(255,0,0),
-        'YELLOW': color(255,255,0),
-        'GREEN': color(0,255,0),
-        'CYAN': color(0,255,255),
-        'BLUE': color(0,0,255),
-        'PURPLE': color(255,0,255),
-    };
+    initColors();
 }
 
 function draw() {
@@ -170,11 +201,10 @@ function draw() {
     /*stroke(0);
     text("fps: " + round(frameRate()), 5, 10);*/
     
-    player.update();
-    player.draw();
+    updatePlayer();
 
     updateEnemies();
-    updateBullets();
+    //updateBullets();
     debugPlayers();
 }
 
@@ -190,10 +220,10 @@ function updateCurrentState(){
 
     for (const [key, nps] of Object.entries(bufferStates[1].players)){
         if(key in bufferStates[0].players){
-            const pps = bufferStates[0].players[key];
-
-            if(currentState.players[key] !== undefined){
-                const cps = currentState.players[key];
+            const pps = bufferStates[0].players[key]; // PastPlayerState
+            
+            if(currentState.players[key] !== undefined){ // als currentstate.player is defined
+                const cps = currentState.players[key]; // CurrentPlayerState
 
                 const new_v = cap(linearInter(pps['v'], nps['v'], progress), cps.v - acceleration * 1.05, cps.r + acceleration * 1.05); //waar komen deze 1.05 vandaan?
                 const new_r = cap(linearInter(pps['r'], nps['r'], progress), cps.r - rotIncrease * 1.05, cps.r + rotIncrease * 1.05);
@@ -211,87 +241,90 @@ function updateCurrentState(){
                     'y': new_y,
                     'r': new_r,
                     'v': new_v,
-                    'tr': new_tr
+                    'tr': new_tr,
+                    'c': pps['c'],
+                    'name': pps['name'],
+                    'bullets': pps['bullets'],
                 }
 
-            }else{
+            }else{ // als currentState.players[key] === undefined
                 currentState.players[key] = {
                     'x': linearInter(pps['x'], nps['x'], progress),
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
+                    'c': nps['c'],
+                    'name': pps['name'],
+                    'bullets': pps['bullets'],
                 }
             }
 
 
-        }else{
-            console.log('New player (step 1)')
-            addPlayer(key, nps)
         }
 
     };
 }
 //#endregion
 
-//#region controlls
+//#region controls
 
-function changeControlls() {
-    controlls.changing = 1;
-    let textBox = document.getElementById("controlls");
+function changecontrols() {
+    controls.changing = 1;
+    let textBox = document.getElementById("controls");
     textBox.innerHTML = "listening for left input...";
 }
 
 function changeFire () {
     document.getElementById("fireWithMouse").blur();
     if (document.getElementById("fireWithMouse").checked) {
-        controlls.fireWithMouse = true;
+        controls.fireWithMouse = true;
     } else {
-        controlls.fireWithMouse = false;
+        controls.fireWithMouse = false;
     }
-    changeControlls();
+    changecontrols();
 }
 
 function keyPressed() {
-    //#region changing controlls DIT IS HECKA LELIJK
-    let textBox = document.getElementById("controlls");
-    switch(controlls.changing) {
-        case 0: // the controlls dont need changing
-            if (keyCode == controlls.fire) {
+    //#region changing controls DIT IS HECKA LELIJK
+    let textBox = document.getElementById("controls");
+    switch(controls.changing) {
+        case 0: // the controls dont need changing
+            if (keyCode == controls.fire) {
                 player.fire();
             }
             break;
         case 1: // the left needs changing
-            controlls.left = keyCode;
+            controls.left = keyCode;
             textBox.innerHTML = "listening for right input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 2: // the right needs changing
-            controlls.right = keyCode;
+            controls.right = keyCode;
             textBox.innerHTML = "listening for up input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 3: // the up needs changing
-            controlls.up = keyCode;
+            controls.up = keyCode;
             textBox.innerHTML = "listening for down input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 4: // the down needs changing
-            controlls.down = keyCode;
-            if (controlls.fireWithMouse) { // end configuration early
-                textBox.innerHTML = "click <u>here</u> to change controlls";
+            controls.down = keyCode;
+            if (controls.fireWithMouse) { // end configuration early
+                textBox.innerHTML = "click <u>here</u> to change controls";
                 //textBox.style.visibility = "invisible";
-                controlls.changing = 0;
+                controls.changing = 0;
             } else {
                 textBox.innerHTML = "listening for fire input...";
-                controlls.changing++;
+                controls.changing++;
             }
             break;
         case 5: // the fire needs changing
-            controlls.fire = keyCode;
-            textBox.innerHTML = "click <u>here</u> to change controlls";
+            controls.fire = keyCode;
+            textBox.innerHTML = "click <u>here</u> to change controls";
             //textBox.style.visibility = "invisible";
-            controlls.changing = 0;
+            controls.changing = 0;
             break;
         default:
             alert("something went very wrong, this is not supposed to happen! error code 69 lmao");
@@ -301,7 +334,7 @@ function keyPressed() {
 }
 
 function mousePressed() {
-    if (controlls.fireWithMouse) {
+    if (controls.fireWithMouse) {
         player.fire();
     }
 }
@@ -314,49 +347,37 @@ function updateEnemies() { // maybe do something here to check the correct amoun
     for (var i = 0; i<enemies.length; i++) {
         enemies[i].update();
         enemies[i].draw();
+        enemies[i].drawName();
+        enemies[i].drawBullets();
     }
 }
 
+function updatePlayer() {
+    player.update();
+    player.draw();
+    player.drawName();
+    player.drawBullets();
+}
+
 function updateBullets() {
-    for (let i = bullets.length -1; i >= 0; i--) {
-        let b = bullets[i];
-        b.update();
-        if (b.x == cap(b.x,0,screenWidth) && b.y == cap(b.y,0,screenHeight)) {
-            bullets[i].draw();
-        } else {
-            bullets.splice(i,1);
-        }
-    }
+    
 }
 
 function debugPlayers() {
     let table = document.getElementById("playerTable");
-    table.innerHTML = `<tr><th>id</th><th>x</th><th>y</th><th>c</th></tr>`
+    table.innerHTML = `<span>currentState entries:</span><br>`
     for (key in currentState.players) {
         let subject = currentState.players[key];
-        table.innerHTML += `<tr><td>${key}</td><td>${subject.x}</td><td>${subject.y}</td><td>${subject.c}</td></tr>`;
+        if (socket.id == key) {
+            table.innerHTML += `<span style="background-color: ${subject.c}">${key} (you)<span><br>`;
+        } else {
+            table.innerHTML += `<span style="background-color: ${subject.c}">${key}</span><br>`;            
+        }
+        
+        
         //console.log(currentState.players[key]);
     }
 }
-
-// moved this to Tank.draw()
-/*function drawTank(x, y, r, c, tr) { 
-    push();
-
-    translate(x, y);
-    rotate(r);
-    stroke(colors[c]);
-    rect(0, 0, tankLength, tankWidth);
-
-    translate(barrelOffSet/2, 0);
-    rotate(-r);
-
-    rotate(tr);
-    rectMode(CORNER);
-    rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
-
-    pop();
-}*/
 
 function cap(x, min, max) {
     if (min <= x && x <= max)
@@ -364,10 +385,6 @@ function cap(x, min, max) {
     if (min > x)
         return min;
     return max;
-}
-
-function isWithin(x, min, max) {
-    return (x > min && x < max);
 }
 
 function linearInter(start, end, progress){
