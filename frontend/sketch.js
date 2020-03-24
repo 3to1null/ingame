@@ -45,6 +45,17 @@ let controlls = {
     //'turrentRight': false
 }
 
+let nameOffset = 10;
+let nameColor;
+let names = {
+    'RED': "Romeo",
+    'YELLOW': "Yankee",
+    'GREEN': "Golf",
+    'CYAN': "charlie",
+    'BLUE': "Bravo",
+    'PURPLE': "Papa",
+};
+
 // #endregion
 
 //#region server receives
@@ -156,6 +167,9 @@ function setup() {
         'BLUE': color(0,0,255),
         'PURPLE': color(255,0,255),
     };
+
+    nameColor = color(0,0,0);
+    nameColor = color(255,255,255);
 }
 
 function draw() {
@@ -168,6 +182,7 @@ function draw() {
     
     player.update();
     player.draw();
+    player.drawName();
 
     updateEnemies();
     updateBullets();
@@ -312,6 +327,7 @@ function updateEnemies() { // maybe do something here to check the correct amoun
     for (var i = 0; i<enemies.length; i++) {
         enemies[i].update();
         enemies[i].draw();
+        enemies[i].drawName();
     }
 }
 
@@ -329,7 +345,7 @@ function updateBullets() {
 
 function debugPlayers() {
     let table = document.getElementById("playerTable");
-    table.innerHTML = `<span>id</span><br>`
+    table.innerHTML = `<span>currentState entries:</span><br>`
     for (key in currentState.players) {
         let subject = currentState.players[key];
         if (socket.id == key) {

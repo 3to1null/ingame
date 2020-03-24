@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
     "r": 0,
     "v": 0,
     "tr": 0,
-    "c": "RED",
+    "c": "RED", // deze moet eigenlijk een kleur kiezen die nog net bezet is....
   };
 
   // Give client time to load before sending state.

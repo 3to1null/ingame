@@ -9,6 +9,7 @@ class Bullet {
     draw() {
         stroke(colors[this.c]);
         point(this.x, this.y);
+        stroke(color(0,0,0));
     };
 
     update() {
@@ -39,7 +40,7 @@ class Tank {
 
         translate(this.x, this.y);
         rotate(this.r);
-        stroke(colors[this.c]);
+        fill(colors[this.c]);
         rect(0, 0, tankLength, tankWidth);
 
         translate(barrelOffSet/2, 0);
@@ -103,6 +104,12 @@ class Player extends Tank {
             'c': this.c,
         });
     }
+
+    drawName() {
+        textAlign(CENTER);
+        fill(nameColor);
+        text("You", this.x,this.y - nameOffset);
+    }
 }
 
 class Enemy extends Tank {
@@ -117,5 +124,11 @@ class Enemy extends Tank {
 
             super.update();
         }
+    }
+
+    drawName() {
+        textAlign(CENTER);
+        fill(nameColor);
+        text(names[this.c], this.x,this.y - nameOffset);
     }
 }
