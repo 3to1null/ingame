@@ -51,7 +51,7 @@ let names = {
     'RED': "Romeo",
     'YELLOW': "Yankee",
     'GREEN': "Golf",
-    'CYAN': "charlie",
+    'CYAN': "Charlie",
     'BLUE': "Bravo",
     'PURPLE': "Papa",
 };
@@ -152,6 +152,11 @@ function removePlayer(id) {
             console.log(id + " left the game");
         }
     }
+    console.log(currentState)
+    delete currentState['players'][id];
+    delete bufferStates[0]['players'][id];
+    delete bufferStates[1]['players'][id];
+    console.log(currentState)
 }
 //#endregion
 
@@ -225,7 +230,7 @@ function updateCurrentState(){
                     'r': new_r,
                     'v': new_v,
                     'tr': new_tr,
-                    'c': pps['c'] // not sure
+                    'c': pps['c']
                 }
 
             }else{ // als currentState.players[key] === undefined
@@ -235,7 +240,7 @@ function updateCurrentState(){
                     'r': linearInter(pps['r'], nps['r'], progress),
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
-                    'c': nps['c'],//"RED", // not sure
+                    'c': nps['c'],
                 }
             }
 
@@ -357,25 +362,6 @@ function debugPlayers() {
         //console.log(currentState.players[key]);
     }
 }
-
-// moved this to Tank.draw()
-/*function drawTank(x, y, r, c, tr) { 
-    push();
-
-    translate(x, y);
-    rotate(r);
-    stroke(colors[c]);
-    rect(0, 0, tankLength, tankWidth);
-
-    translate(barrelOffSet/2, 0);
-    rotate(-r);
-
-    rotate(tr);
-    rectMode(CORNER);
-    rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
-
-    pop();
-}*/
 
 function cap(x, min, max) {
     if (min <= x && x <= max)

@@ -120,7 +120,7 @@ class Enemy extends Tank {
             this.r = currentState.players[this.id]['r'];
             this.v = currentState.players[this.id]['v'];
             this.tr = currentState.players[this.id]['tr'];
-            // this.c = currentState.players[this.id]['c']
+            this.c = currentState.players[this.id]['c']
 
             super.update();
         }

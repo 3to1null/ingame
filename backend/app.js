@@ -6,6 +6,8 @@ console.log('Starting socket');
 
 app.listen(8009);
 
+const tickTime = 50
+
 const state = {
   "players":{}
 };
@@ -50,6 +52,11 @@ io.on('connection', (socket) => {
 });
 
 // Broadcast game state
+let lastUpdate;
 setInterval(() => {
+  let update = Date.now();
+  if(update - lastUpdate > tickTime * 1.1){
+    console.log(`Spend ${lastUpdate - update}ms on a frame!`)
+  }
   io.emit('update_state', state)
-}, 50)
+}, tickTime)
