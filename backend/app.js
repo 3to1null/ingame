@@ -10,23 +10,30 @@ const state = {
   "players":{}
 };
 
+const initWaitTime = 1000;
+
 io.on('connection', (socket) => {
-  // On connection
-  state["players"][socket.id] = {
+  let newPlayer = {
     "x": 0,
     "y": 0,
     "r": 0,
     "v": 0,
     "tr": 0,
-    "c": "RED", // deze moet eigenlijk een kleur kiezen die nog net bezet is....
+    "c": "RED",
   };
 
-  // Give client time to load before sending state.
-  setTimeout(() => {
-    socket.emit('init', {
-      'state': state
-    });
-  }, 1000);
+  state["players"][socket.id] = newPlayer
+
+  // Emit new player to all other players
+  setTimeout(() => {socket.broadcast.emit('player_join', {
+      "id": socket.id,
+      "player": newPlayer
+  })}, initWaitTime);
+
+  // Emit state to new player
+  setTimeout(() => {socket.emit('init', {
+    'state': state
+  })}, initWaitTime);
 
 
   socket.on('update_player', (data) => {

@@ -80,14 +80,9 @@ socket.on('init', (data) => { // first connection
 // --- update from server
 socket.on('update_state', (data) => {
     const now = Date.now()
-    console.log(data.players)
+    // console.log(data.players)
     if(Object.keys(data.players).length > enemies.length + 1){
         let enemyIDs = enemies.map(e => e.id);
-        for (let id in data.players){
-            if(id !== socket.id && !enemyIDs.includes(id)){
-                addPlayer(id, data.players[id])
-            }
-        }
     }
 
     bufferStates.push({
@@ -102,6 +97,10 @@ socket.on('update_state', (data) => {
     }
 });
 
+socket.on('player_join', (data) => {
+    addPlayer(data['id'], data['player'])
+})
+
 socket.on('delete', (data) => {
     console.log("received a delete");
     console.log(data);
@@ -110,8 +109,7 @@ socket.on('delete', (data) => {
 
 
 function initPlayers(data) {
-    console.log("init players");
-    console.log(data); // not getting c
+    console.debug("init players");
     for (var id in data.state.players) {
         if (id === socket.id) {
             let colorKeys = Object.keys(colors);
@@ -119,24 +117,22 @@ function initPlayers(data) {
             // randomColor = "CYAN";
             player = new Player(id, randomColor, tankBeginX, tankBeginY, tankBeginR, tankBeginV);
         } else { // someone els
-            let currentPlayer = data.state.players[id];
-            console.log("currentPlayer:")
-            console.log(currentPlayer);
+            let selectedPlayer = data.state.players[id];
             enemies.push(new Enemy(
                 id, 
-                currentPlayer['c'], 
-                currentPlayer['x'], 
-                currentPlayer['y'], 
-                currentPlayer['r'], 
-                currentPlayer['v']
+                selectedPlayer['c'], 
+                selectedPlayer['x'], 
+                selectedPlayer['y'], 
+                selectedPlayer['r'], 
+                selectedPlayer['tr'], 
+                selectedPlayer['v']
             ));
         }
     }    
 }
 
 function addPlayer(id, newPlayer) {
-    console.log(`${id} joined.`);
-    // bufferStates[0]['players'][id] = newPlayer; // update local players data
+    console.debug(`${id} joined.`);
     enemies.push(
         new Enemy(
             id, 
@@ -147,9 +143,6 @@ function addPlayer(id, newPlayer) {
             newPlayer.v
         )
     );
-    console.log(enemies)
-    console.log(newPlayer)
-    console.log(bufferStates);
 }
 
 function removePlayer(id) {
