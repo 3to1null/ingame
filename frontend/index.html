@@ -3,21 +3,9 @@
     <head>
         <title>ingame</title>
         <style>
-            table {
-              font-family: arial, sans-serif;
-              border-collapse: collapse;
-              width: 100%;
-            }
             
-            td, th {
-              border: 1px solid #dddddd;
-              text-align: left;
-              padding: 8px;
-            }
             
-            tr:nth-child(even) {
-              background-color: #dddddd;
-            }
+            
         </style>
     </head>
     <body>
@@ -31,14 +19,11 @@
         <input type="checkbox" id="fireWithMouse" onchange="changeFire()" checked="true"> fire with the mouse
         <!--<p id="controllText" style="visibility: hidden;">listening for left input...</p> -->
         <div id="debugging">
-
+            <a href="http://127.0.0.1:5500/frontend/" target="_blank">new window</a>
             <h1 id="0">debugging</h1>
-            <table id="playerTable">
-                <tr>
-                    <th>Players:</th>
-                    <th id="playerCount"></th>
-                </tr>
-            </table>
+            <div id="playerTable">
+                
+            </div>
 
         </div>
         
