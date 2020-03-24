@@ -21,7 +21,9 @@ io.on('connection', (socket) => {
     "r": 0,
     "v": 0,
     "tr": 0,
-    "c": "RED",
+    "c": "red",
+    'name': "unnamed",
+    'bullets': [],
   };
 
   state["players"][socket.id] = newPlayer

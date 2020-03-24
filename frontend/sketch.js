@@ -2,38 +2,42 @@
 
 let isInit = false;
 
+// --- speed of things
 let maxV = 3;
 let acceleration = 0.1;
 let rotIncrease = 0.05;
 let bulletSpeed = 5;
 
+// --- size of things
+let screenWidth = 400;
+let screenHeight = 400;
 let tankWidth = 15;
 let tankLength = 20;
 let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
 
+let hpWidth = 25;
+let hpHeight = 4;
+let hpOffset = 10;
+let nameOffset = 10;
+
+
+// --- begin of things
 let tankBeginX = 0;
 let tankBeginY = 0;
 let tankBeginR = 0;
 let tankBeginV = 0;
+let startHp = 100;
 
-let screenWidth = 400;
-let screenHeight = 400;
-
+// --- controls for things
 let leftKey = 65;
 let rightKey = 68;
 let upKey = 87;
 let downKey = 83;
 let fireKey;
 
-let player; 
-let enemies = [];
-let bullets = [];
-
-let colors;
-
-let controlls = {
+let controls = {
     'changing': 0, // none, left, right, up, down, fire
     'left': leftKey,
     'right': rightKey,
@@ -41,12 +45,33 @@ let controlls = {
     'down': downKey,
     'fireWithMouse': true,
     'fire': fireKey,
-    //'turretLeft': false,
-    //'turrentRight': false
 }
 
-let nameOffset = 10;
-let nameColor;
+// --- colors of things
+let colors;
+let hpBackgroundColor;
+let hpRedLine = 0.25;
+
+function initColors() {
+    colors = {
+        'black': color(0,0,0),
+        'white': color(255,255,255),
+        'red': color(255,0,0),
+        'yellow': color(255,255,0),
+        'green': color(0,255,0),
+        'cyan': color(0,255,255),
+        'blue': color(0,0,255),
+        'purple': color(255,0,255),
+    };
+
+    hpBackgroundColor = colors.black;
+}
+
+// --- instances of things
+let player; 
+let enemies = [];
+
+// --- misc things
 let names = {
     'RED': "Romeo",
     'YELLOW': "Yankee",
@@ -165,18 +190,7 @@ function removePlayer(id) {
 function setup() {
     createCanvas(screenWidth,screenHeight).parent('canvasholder');
     rectMode(CENTER);
-    
-    colors = {
-        'RED': color(255,0,0),
-        'YELLOW': color(255,255,0),
-        'GREEN': color(0,255,0),
-        'CYAN': color(0,255,255),
-        'BLUE': color(0,0,255),
-        'PURPLE': color(255,0,255),
-    };
-
-    nameColor = color(0,0,0);
-    nameColor = color(255,255,255);
+    initColors();
 }
 
 function draw() {
@@ -187,12 +201,10 @@ function draw() {
     /*stroke(0);
     text("fps: " + round(frameRate()), 5, 10);*/
     
-    player.update();
-    player.draw();
-    player.drawName();
+    updatePlayer();
 
     updateEnemies();
-    updateBullets();
+    //updateBullets();
     debugPlayers();
 }
 
@@ -209,7 +221,7 @@ function updateCurrentState(){
     for (const [key, nps] of Object.entries(bufferStates[1].players)){
         if(key in bufferStates[0].players){
             const pps = bufferStates[0].players[key]; // PastPlayerState
-
+            
             if(currentState.players[key] !== undefined){ // als currentstate.player is defined
                 const cps = currentState.players[key]; // CurrentPlayerState
 
@@ -230,7 +242,9 @@ function updateCurrentState(){
                     'r': new_r,
                     'v': new_v,
                     'tr': new_tr,
-                    'c': pps['c']
+                    'c': pps['c'],
+                    'name': pps['name'],
+                    'bullets': pps['bullets'],
                 }
 
             }else{ // als currentState.players[key] === undefined
@@ -241,6 +255,8 @@ function updateCurrentState(){
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
                     'c': nps['c'],
+                    'name': pps['name'],
+                    'bullets': pps['bullets'],
                 }
             }
 
@@ -251,64 +267,64 @@ function updateCurrentState(){
 }
 //#endregion
 
-//#region controlls
+//#region controls
 
-function changeControlls() {
-    controlls.changing = 1;
-    let textBox = document.getElementById("controlls");
+function changecontrols() {
+    controls.changing = 1;
+    let textBox = document.getElementById("controls");
     textBox.innerHTML = "listening for left input...";
 }
 
 function changeFire () {
     document.getElementById("fireWithMouse").blur();
     if (document.getElementById("fireWithMouse").checked) {
-        controlls.fireWithMouse = true;
+        controls.fireWithMouse = true;
     } else {
-        controlls.fireWithMouse = false;
+        controls.fireWithMouse = false;
     }
-    changeControlls();
+    changecontrols();
 }
 
 function keyPressed() {
-    //#region changing controlls DIT IS HECKA LELIJK
-    let textBox = document.getElementById("controlls");
-    switch(controlls.changing) {
-        case 0: // the controlls dont need changing
-            if (keyCode == controlls.fire) {
+    //#region changing controls DIT IS HECKA LELIJK
+    let textBox = document.getElementById("controls");
+    switch(controls.changing) {
+        case 0: // the controls dont need changing
+            if (keyCode == controls.fire) {
                 player.fire();
             }
             break;
         case 1: // the left needs changing
-            controlls.left = keyCode;
+            controls.left = keyCode;
             textBox.innerHTML = "listening for right input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 2: // the right needs changing
-            controlls.right = keyCode;
+            controls.right = keyCode;
             textBox.innerHTML = "listening for up input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 3: // the up needs changing
-            controlls.up = keyCode;
+            controls.up = keyCode;
             textBox.innerHTML = "listening for down input...";
-            controlls.changing++;
+            controls.changing++;
             break;
         case 4: // the down needs changing
-            controlls.down = keyCode;
-            if (controlls.fireWithMouse) { // end configuration early
-                textBox.innerHTML = "click <u>here</u> to change controlls";
+            controls.down = keyCode;
+            if (controls.fireWithMouse) { // end configuration early
+                textBox.innerHTML = "click <u>here</u> to change controls";
                 //textBox.style.visibility = "invisible";
-                controlls.changing = 0;
+                controls.changing = 0;
             } else {
                 textBox.innerHTML = "listening for fire input...";
-                controlls.changing++;
+                controls.changing++;
             }
             break;
         case 5: // the fire needs changing
-            controlls.fire = keyCode;
-            textBox.innerHTML = "click <u>here</u> to change controlls";
+            controls.fire = keyCode;
+            textBox.innerHTML = "click <u>here</u> to change controls";
             //textBox.style.visibility = "invisible";
-            controlls.changing = 0;
+            controls.changing = 0;
             break;
         default:
             alert("something went very wrong, this is not supposed to happen! error code 69 lmao");
@@ -318,7 +334,7 @@ function keyPressed() {
 }
 
 function mousePressed() {
-    if (controlls.fireWithMouse) {
+    if (controls.fireWithMouse) {
         player.fire();
     }
 }
@@ -332,19 +348,19 @@ function updateEnemies() { // maybe do something here to check the correct amoun
         enemies[i].update();
         enemies[i].draw();
         enemies[i].drawName();
+        enemies[i].drawBullets();
     }
 }
 
+function updatePlayer() {
+    player.update();
+    player.draw();
+    player.drawName();
+    player.drawBullets();
+}
+
 function updateBullets() {
-    for (let i = bullets.length -1; i >= 0; i--) {
-        let b = bullets[i];
-        b.update();
-        if (b.x == cap(b.x,0,screenWidth) && b.y == cap(b.y,0,screenHeight)) {
-            bullets[i].draw();
-        } else {
-            bullets.splice(i,1);
-        }
-    }
+    
 }
 
 function debugPlayers() {

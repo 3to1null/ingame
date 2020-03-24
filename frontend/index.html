@@ -15,6 +15,7 @@
         <script src="classes.js"></script>
         <script src="sketch.js" defer></script>
         <div id="canvasholder"></div>
+        <p><input type="text" onchange="let dit = document.getElementById('name'); player.name = dit.value; dit.blur();" id="name" autocomplete="off" placeholder="Je naam"></p>
         <p id="controlls" onClick="changeControlls()">click <u>here</u> to change controlls</p>
         <input type="checkbox" id="fireWithMouse" onchange="changeFire()" checked="true"> fire with the mouse
         <!--<p id="controllText" style="visibility: hidden;">listening for left input...</p> -->
