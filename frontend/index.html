@@ -6,6 +6,14 @@
             
             body{margin:0;overflow:hidden}
             
+            input[type="text"], button {
+                border: none;
+                box-sizing: border-box;
+                background: transparent;
+                padding: 5px;
+                color: white;
+            }
+
         </style>
     </head>
     <body>
@@ -13,20 +21,22 @@
         <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
         <script src="config.js"></script>
         <script src="classes.js"></script>
+        <script src="controls.js"></script>
+        <script src="ui.js"></script>
         <script src="sketch.js" defer></script>
         <div id="canvasholder"></div>
-        <p><input type="text" onchange="let dit = document.getElementById('name'); player.name = dit.value; dit.blur();" id="name" autocomplete="off" placeholder="Je naam"></p>
-        <p id="controlls" onClick="changeControlls()">click <u>here</u> to change controlls</p>
+        <!--<p><input type="text" onchange="let dit = document.getElementById('name'); player.name = dit.value; dit.blur();" id="name" autocomplete="off" placeholder="Je naam"></p> -->
+        <!--<p id="controlls" onClick="changeControlls()">click <u>here</u> to change controlls</p>
         <input type="checkbox" id="fireWithMouse" onchange="changeFire()" checked="true"> fire with the mouse
-        <!--<p id="controllText" style="visibility: hidden;">listening for left input...</p> -->
-        <div id="debugging">
+        <p id="controllText" style="visibility: hidden;">listening for left input...</p> -->
+        <!-- <div id="debugging">
             <a href="http://127.0.0.1:5500/frontend/" target="_blank">new window</a>
             <h1 id="0">debugging</h1>
             <div id="playerTable">
                 
             </div>
 
-        </div>
+        </div> -->
         
     </body>
 </html>

@@ -60,8 +60,8 @@ class Tank {
         this.v = cap(this.v,0,maxV);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
-        this.x = cap(this.x,0,width/scale);
-        this.y = cap(this.y,0,height/scale);
+        this.x = cap(this.x,0,referenceWidth);
+        this.y = cap(this.y,0,referenceHeight);
     }
 
     rotate(dr) {
@@ -74,7 +74,6 @@ class Tank {
 
     drawBullets() { // nts push and pop
         stroke(colors[this.c]);   
-        //point(this.x * scale, this.y * scale); 
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
             point(bullet.x * scale, bullet.y * scale);
