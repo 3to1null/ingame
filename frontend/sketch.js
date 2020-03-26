@@ -77,16 +77,6 @@ function initColors() {
 let player; 
 let enemies = [];
 
-// --- misc things
-let names = {
-    'RED': "Romeo",
-    'YELLOW': "Yankee",
-    'GREEN': "Golf",
-    'CYAN': "Charlie",
-    'BLUE': "Bravo",
-    'PURPLE': "Papa",
-};
-
 // #endregion
 
 //#region server receives
