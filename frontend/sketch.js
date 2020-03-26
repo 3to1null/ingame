@@ -1,6 +1,11 @@
 // #region variable declaration
-
 let isInit = false;
+let gameState = 0; /*
+                0 = not inited
+                1 = in main game loop
+                2 = options menu
+
+*/
 
 // --- speed of things
 let maxV = 3;
@@ -35,29 +40,13 @@ let tankBeginR = 0;
 let tankBeginV = 0;
 let startHp = 100;
 
-// --- controls for things
-let leftKey = 65;
-let rightKey = 68;
-let upKey = 87;
-let downKey = 83;
-let fireKey;
-
-let controls = {
-    'changing': 0, // none, left, right, up, down, fire
-    'left': leftKey,
-    'right': rightKey,
-    'up': upKey,
-    'down': downKey,
-    'fireWithMouse': true,
-    'fire': fireKey,
-}
-
 // --- colors of things
 let colors;
 let backgroundColor;
 let hpBackgroundColor;
 let hpRedLine = 0.25;
-
+let UIBackgroundColor;
+let buttonColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -71,11 +60,14 @@ function initColors() {
     };
     backgroundColor = color('#222');
     hpBackgroundColor = colors.black;
+    UIBackgroundColor = color(51);
+    buttonColor = color(61);
 }
 
 // --- instances of things
 let player; 
 let enemies = [];
+
 
 // #endregion
 
@@ -92,6 +84,7 @@ var socket = io(socketLocation);
 socket.on('init', (data) => { // first connection
     initPlayers(data);
     isInit = true;
+    gameState = 1; // go to main game loop
 });
 
 /*socket.on('new', (data) => { // new player // obsolete
@@ -120,6 +113,10 @@ socket.on('update_state', (data) => {
 
 socket.on('player_join', (data) => {
     addPlayer(data['id'], data['player'])
+})
+
+socket.on('bullet_hit', (data) => {
+    player.onReceivedHit();
 })
 
 socket.on('delete', (data) => {
@@ -183,24 +180,40 @@ function removePlayer(id) {
 
 //#region main game code
 
+function preLoad() {
+
+}
+
 function setup() {
     createCanvas(0,0).parent('canvasholder');
     windowResized();
     rectMode(CENTER);
     initColors();
     
-
+    //input = createInput();
+    //input.position(inputX,inputY);
 
 }
 
 function draw() {
     if(!isInit){return;}
-    updateCurrentState();
-    background(51);
-    updatePlayer();
-    updateEnemies();
-    debugPlayers();
+    if (gameState == 1) { // main game loop
+        background(backgroundColor);
+        drawUI();
+        updateCurrentState();
+        updatePlayer();
+        updateEnemies();
+    } else if (gameState == 2) { // options screen
+        background(backgroundColor);
+        drawButtons();
+        //updateCurrentState();
+        //updatePlayer();
+    }
 }
+//#endregion
+
+//#region functions
+
 
 function updateCurrentState(){
     if(bufferStates.length < 2){
@@ -259,83 +272,6 @@ function updateCurrentState(){
 
     };
 }
-//#endregion
-
-//#region controls
-
-function changecontrols() {
-    controls.changing = 1;
-    let textBox = document.getElementById("controls");
-    textBox.innerHTML = "listening for left input...";
-}
-
-function changeFire () {
-    document.getElementById("fireWithMouse").blur();
-    if (document.getElementById("fireWithMouse").checked) {
-        controls.fireWithMouse = true;
-    } else {
-        controls.fireWithMouse = false;
-    }
-    changecontrols();
-}
-
-function keyPressed() {
-    //#region changing controls DIT IS HECKA LELIJK
-    let textBox = document.getElementById("controls");
-    switch(controls.changing) {
-        case 0: // the controls dont need changing
-            if (keyCode == controls.fire) {
-                player.fire();
-            }
-            break;
-        case 1: // the left needs changing
-            controls.left = keyCode;
-            textBox.innerHTML = "listening for right input...";
-            controls.changing++;
-            break;
-        case 2: // the right needs changing
-            controls.right = keyCode;
-            textBox.innerHTML = "listening for up input...";
-            controls.changing++;
-            break;
-        case 3: // the up needs changing
-            controls.up = keyCode;
-            textBox.innerHTML = "listening for down input...";
-            controls.changing++;
-            break;
-        case 4: // the down needs changing
-            controls.down = keyCode;
-            if (controls.fireWithMouse) { // end configuration early
-                textBox.innerHTML = "click <u>here</u> to change controls";
-                //textBox.style.visibility = "invisible";
-                controls.changing = 0;
-            } else {
-                textBox.innerHTML = "listening for fire input...";
-                controls.changing++;
-            }
-            break;
-        case 5: // the fire needs changing
-            controls.fire = keyCode;
-            textBox.innerHTML = "click <u>here</u> to change controls";
-            //textBox.style.visibility = "invisible";
-            controls.changing = 0;
-            break;
-        default:
-            alert("something went very wrong, this is not supposed to happen! error code 69 lmao");
-            break;
-    }
-    //#endregion
-}
-
-function mousePressed() {
-    if (controls.fireWithMouse) {
-        player.fire();
-    }
-}
-
-//#endregion
-
-//#region functions
 
 function updateEnemies() { // maybe do something here to check the correct amount of enemies
     for (var i = 0; i<enemies.length; i++) {
@@ -371,7 +307,6 @@ function debugPlayers() {
 
 function windowResized() {
     let currentAspectRatio = windowWidth/windowHeight;
-    //console.log(currentAspectRatio);
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
         resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
         scale = windowWidth/referenceWidth;
