@@ -196,15 +196,9 @@ function setup() {
 function draw() {
     if(!isInit){return;}
     updateCurrentState();
-
     background(51);
-    /*stroke(0);
-    text("fps: " + round(frameRate()), 5, 10);*/
-    
     updatePlayer();
-
     updateEnemies();
-    //updateBullets();
     debugPlayers();
 }
 
@@ -255,8 +249,8 @@ function updateCurrentState(){
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
                     'c': nps['c'],
-                    'name': pps['name'],
-                    'bullets': pps['bullets'],
+                    'name': nps['name'],
+                    'bullets': nps['bullets'],
                 }
             }
 
@@ -357,10 +351,6 @@ function updatePlayer() {
     player.draw();
     player.drawName();
     player.drawBullets();
-}
-
-function updateBullets() {
-    
 }
 
 function debugPlayers() {

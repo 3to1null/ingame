@@ -6,6 +6,12 @@ class Bullet {
         this.r = r;
     }
 
+    updateInternals(x,y,r){
+        this.x = x;
+        this.y = y;
+        this.r = r;
+    }
+
     update() {
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
@@ -28,7 +34,7 @@ class Tank {
         this.name = c;
         this.c = c;
 
-        this.bullets = [];
+        this.bullets = {};
     }
 
     draw() {
@@ -66,8 +72,14 @@ class Tank {
         this.tr += dr;
     }
 
-    fire() {
-        this.bullets.push(new Bullet(this.x + (barrelLength - barrelOffSet) * cos(this.tr), this.y + (barrelLength - barrelOffSet) * sin(this.tr), this.tr));
+    drawBullets() {
+        stroke(colors[this.c]);   
+        point(this.x, this.y); 
+        for (const [bulletID, bullet] of Object.entries(this.bullets)){
+            bullet.update()
+            point(bullet.x, bullet.y);
+        }
+        stroke(colors.black);
     }
 }
 
@@ -101,6 +113,7 @@ class Player extends Tank {
         });*/
 
         socket.emit('update_player', this); // this works apearantly?
+        // console.log(this);
 
     }
 
@@ -110,15 +123,12 @@ class Player extends Tank {
         text(this.name + " (You)", this.x,this.y - nameOffset);
     }
 
-    drawBullets() {
-        stroke(colors[this.c]);   
-        point(this.x, this.y); 
-        for(let i = this.bullets.length -1; i >= 0; i--) {
-            let b = this.bullets[i];
-            b.update();
-            point(b.x, b.y);
-        }
-        stroke(colors.black);
+    fire() {
+        this.bullets[floor(Math.random() * 10000000)] = new Bullet(
+            this.x + (barrelLength - barrelOffSet) * cos(this.tr), 
+            this.y + (barrelLength - barrelOffSet) * sin(this.tr), 
+            this.tr,
+        );
     }
 }
 
@@ -132,9 +142,19 @@ class Enemy extends Tank {
             this.tr = currentState.players[this.id]['tr'];
             this.c = currentState.players[this.id]['c'];
             this.name = currentState.players[this.id]['name'];
-            this.bullets = currentState.players[this.id]['bullets'];
-
+            this.hp = currentState.players[this.id]['hp'];
+            this.updateBullets(currentState.players[this.id]['bullets']);
             super.update();
+        }
+    }
+
+    updateBullets(bulletsUpdate){
+        if(bulletsUpdate === undefined){return;}
+        for (const [bulletID, bulletState] of Object.entries(bulletsUpdate)){
+            if(!(bulletID in this.bullets)){
+                // Create new bullet.
+                this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'])
+            }
         }
     }
 
@@ -142,19 +162,5 @@ class Enemy extends Tank {
         textAlign(CENTER);
         fill(colors[this.c]);
         text(this.name, this.x,this.y - nameOffset);
-    }
-
-    drawBullets() {
-        stroke(colors[this.c]);   
-        point(this.x, this.y); 
-        for(let i = this.bullets.length -1; i >= 0; i--) {
-            let b = this.bullets[i];
-            // updating position
-            b.x += cos(b.r)*b.v;
-            b.y += sin(b.r)*b.v;
-
-            point(b.x, b.y);
-        }
-        stroke(colors.black);
     }
 }
