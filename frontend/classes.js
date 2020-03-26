@@ -4,6 +4,7 @@ class Bullet {
         this.y = y;
         this.v = bulletSpeed;
         this.r = r;
+        this.needsCleanup = false;
     }
 
     updateInternals(x,y,r){
@@ -12,9 +13,56 @@ class Bullet {
         this.r = r;
     }
 
+    checkCollisions(){
+        enemies.forEach((enemy) => {
+            let enemyTankVerticis = [];
+            let o = {'x': enemy.x, 'y': enemy.y}
+            enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            enemyTankVerticis[1] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
+            enemyTankVerticis[2] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            enemyTankVerticis[3] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
+
+            // DEBUG hitbox
+            push();
+            stroke(colors['white'])
+            point(enemyTankVerticis[0].x * scale, enemyTankVerticis[0].y * scale);
+            point(enemyTankVerticis[1].x * scale, enemyTankVerticis[1].y * scale);
+            point(enemyTankVerticis[2].x * scale, enemyTankVerticis[2].y * scale);
+            point(enemyTankVerticis[3].x * scale, enemyTankVerticis[3].y * scale);
+            pop();
+
+            let py = this.y;
+            let px = this.x;
+            let collision = false;
+            let next = 0;
+            for (let current=0; current<enemyTankVerticis.length; current++) {
+                next = current+1;
+                if (next == enemyTankVerticis.length){next = 0;}
+                let vc = enemyTankVerticis[current];
+                let vn = enemyTankVerticis[next];
+                if (((vc.y > py && vn.y < py) || (vc.y < py && vn.y > py)) &&
+                     (px < (vn.x-vc.x)*(py-vc.y) / (vn.y-vc.y)+vc.x)) {
+                        collision = !collision;
+                }
+            }
+
+            if(collision){
+                console.log('hit!')
+                this.needsCleanup = true;
+            }
+        })
+    }
+
     update() {
+        this.checkCollisions();
+
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
+
+        if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
+            this.needsCleanup = true;
+        }
+
     };
 
 }
@@ -99,7 +147,8 @@ class Player extends Tank {
         }
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
-        
+
+        this.updateBullets();
         super.update(); // Tank.update() function
         
         /*socket.emit('update_player', { // maybe change this to emit('update_player', this); ?
@@ -115,6 +164,15 @@ class Player extends Tank {
         socket.emit('update_player', this); // this works apearantly?
         // console.log(this);
 
+    }
+
+    updateBullets(){
+        // Loop through already existing bullets
+        for (const [bulletID, bullet] of Object.entries(this.bullets)){
+            if(bullet.needsCleanup === true){
+                delete this.bullets[bulletID];
+            }
+        }
     }
 
     drawName() {
@@ -150,10 +208,17 @@ class Enemy extends Tank {
 
     updateBullets(bulletsUpdate){
         if(bulletsUpdate === undefined){return;}
+        // Loop through new bullets
         for (const [bulletID, bulletState] of Object.entries(bulletsUpdate)){
             if(!(bulletID in this.bullets)){
                 // Create new bullet.
                 this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'])
+            }
+        }
+        // Loop through already existing bullets
+        for (const [bulletID, bullet] of Object.entries(this.bullets)){
+            if(bullet.needsCleanup === true){
+                delete this.bullets[bulletID];
             }
         }
     }
