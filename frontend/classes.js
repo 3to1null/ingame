@@ -112,11 +112,18 @@ class Tank {
         rectMode(CORNER);
         rect(-barrelOffSet/2 * scale, -barrelWidth/2 * scale, barrelLength * scale, barrelWidth * scale);
         pop();
+        this.drawHp();
     };
     
     drawHp() {
-        fill(hpBackgroundcolor);
-        rect(this.x * scale, this.y * scale, hpWidth * scale, hpHeight * scale);
+        push();
+        //rectMode(CORNER);
+        noStroke();
+        fill(hpBackgroundColor);
+        rect(this.x * scale, (this.y - hpOffset) * scale, hpWidth * scale, hpHeight * scale);
+        fill(hpColor);
+        rect(this.x * scale, (this.y - hpOffset) * scale, (this.hp/startHp)*hpWidth*scale, hpHeight*scale);
+        pop()
     }
 
     update() {

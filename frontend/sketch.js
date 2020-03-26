@@ -14,8 +14,6 @@ let rotIncrease = 0.05;
 let bulletSpeed = 5;
 
 // --- size of things
-//let screenWidth = 400;
-//let screenHeight = 400;
 let scale = 1; // this is for a screen of referenceWidth x referenceHeight
 let referenceWidth = 1280
 let referenceHeight = 720
@@ -27,10 +25,10 @@ let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
 
-let hpWidth = 25;
-let hpHeight = 4;
-let hpOffset = 10;
-let nameOffset = 10;
+let hpWidth = 100;
+let hpHeight = 5;
+let hpOffset = 15;
+let nameOffset = 25;
 
 
 // --- begin of things
@@ -59,7 +57,8 @@ function initColors() {
         'purple': color(255,0,255),
     };
     backgroundColor = color('#222');
-    hpBackgroundColor = colors.black;
+    hpBackgroundColor = colors.red;
+    hpColor = colors.green;
     UIBackgroundColor = color(51);
     buttonColor = color(61);
 }
