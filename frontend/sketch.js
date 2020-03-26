@@ -9,8 +9,13 @@ let rotIncrease = 0.05;
 let bulletSpeed = 5;
 
 // --- size of things
-let screenWidth = 400;
-let screenHeight = 400;
+//let screenWidth = 400;
+//let screenHeight = 400;
+let scale = 1; // this is for a screen of referenceWidth x referenceHeight
+let referenceWidth = 1280
+let referenceHeight = 720
+let targetAspectRatio = 16/9;
+
 let tankWidth = 15;
 let tankLength = 20;
 let barrelLength = 20;
@@ -49,6 +54,7 @@ let controls = {
 
 // --- colors of things
 let colors;
+let backgroundColor;
 let hpBackgroundColor;
 let hpRedLine = 0.25;
 
@@ -63,7 +69,7 @@ function initColors() {
         'blue': color(0,0,255),
         'purple': color(255,0,255),
     };
-
+    backgroundColor = color('#222');
     hpBackgroundColor = colors.black;
 }
 
@@ -188,23 +194,21 @@ function removePlayer(id) {
 //#region main game code
 
 function setup() {
-    createCanvas(screenWidth,screenHeight).parent('canvasholder');
+    createCanvas(0,0).parent('canvasholder');
+    windowResized();
     rectMode(CENTER);
     initColors();
+    
+
+
 }
 
 function draw() {
     if(!isInit){return;}
     updateCurrentState();
-
     background(51);
-    /*stroke(0);
-    text("fps: " + round(frameRate()), 5, 10);*/
-    
     updatePlayer();
-
     updateEnemies();
-    //updateBullets();
     debugPlayers();
 }
 
@@ -255,8 +259,8 @@ function updateCurrentState(){
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
                     'c': nps['c'],
-                    'name': pps['name'],
-                    'bullets': pps['bullets'],
+                    'name': nps['name'],
+                    'bullets': nps['bullets'],
                 }
             }
 
@@ -359,10 +363,6 @@ function updatePlayer() {
     player.drawBullets();
 }
 
-function updateBullets() {
-    
-}
-
 function debugPlayers() {
     let table = document.getElementById("playerTable");
     table.innerHTML = `<span>currentState entries:</span><br>`
@@ -371,11 +371,23 @@ function debugPlayers() {
         if (socket.id == key) {
             table.innerHTML += `<span style="background-color: ${subject.c}">${key} (you)<span><br>`;
         } else {
-            table.innerHTML += `<span style="background-color: ${subject.c}">${key}</span><br>`;            
+            table.innerHTML += `<span style="bacsground-color: ${subject.c}">${key}</span><br>`;            
         }
         
         
         //console.log(currentState.players[key]);
+    }
+}
+
+function windowResized() {
+    let currentAspectRatio = windowWidth/windowHeight;
+    //console.log(currentAspectRatio);
+    if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
+        resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
+        scale = windowWidth/referenceWidth;
+    } else {
+        resizeCanvas(windowHeight*targetAspectRatio, windowHeight);
+        scale = windowHeight/referenceHeight;
     }
 }
 
