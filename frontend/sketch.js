@@ -115,6 +115,10 @@ socket.on('player_join', (data) => {
     addPlayer(data['id'], data['player'])
 })
 
+socket.on('bullet_hit', (data) => {
+    player.onReceivedHit();
+})
+
 socket.on('delete', (data) => {
     console.log("received a delete");
     console.log(data);
@@ -329,5 +333,12 @@ function linearInterAngle(start, end, progress){
     let delta_angle = (end-start) % Math.PI * 2;
     return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
+
+let rotatePointPoint = (point, origin, angle) => {
+    return createVector(
+        cos(angle) * (point.x - origin.x) - sin(angle) * (point.y - origin.y) + origin.x,
+        sin(angle) * (point.x - origin.x) + cos(angle) * (point.y - origin.y) + origin.y
+    );
+};
 
 //#endregion
