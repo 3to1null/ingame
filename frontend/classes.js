@@ -13,7 +13,49 @@ class Bullet {
         this.r = r;
     }
 
+    checkCollisions(){
+        enemies.forEach((enemy) => {
+            let enemyTankVerticis = [];
+            let o = {'x': enemy.x, 'y': enemy.y}
+            enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            enemyTankVerticis[1] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
+            enemyTankVerticis[2] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            enemyTankVerticis[3] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
+
+            // DEBUG hitbox
+            push();
+            stroke(colors['white'])
+            point(enemyTankVerticis[0].x * scale, enemyTankVerticis[0].y * scale);
+            point(enemyTankVerticis[1].x * scale, enemyTankVerticis[1].y * scale);
+            point(enemyTankVerticis[2].x * scale, enemyTankVerticis[2].y * scale);
+            point(enemyTankVerticis[3].x * scale, enemyTankVerticis[3].y * scale);
+            pop();
+
+            let py = this.y;
+            let px = this.x;
+            let collision = false;
+            let next = 0;
+            for (let current=0; current<enemyTankVerticis.length; current++) {
+                next = current+1;
+                if (next == enemyTankVerticis.length){next = 0;}
+                let vc = enemyTankVerticis[current];
+                let vn = enemyTankVerticis[next];
+                if (((vc.y > py && vn.y < py) || (vc.y < py && vn.y > py)) &&
+                     (px < (vn.x-vc.x)*(py-vc.y) / (vn.y-vc.y)+vc.x)) {
+                        collision = !collision;
+                }
+            }
+
+            if(collision){
+                console.log('hit!')
+                this.needsCleanup = true;
+            }
+        })
+    }
+
     update() {
+        this.checkCollisions();
+
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
 
@@ -161,7 +203,6 @@ class Enemy extends Tank {
             this.hp = currentState.players[this.id]['hp'];
             this.updateBullets(currentState.players[this.id]['bullets']);
             super.update();
-            console.log(this.bullets)
         }
     }
 
