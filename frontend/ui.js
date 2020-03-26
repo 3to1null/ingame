@@ -33,7 +33,7 @@ let checkboxHeight = 50;
 let submit;
 //let submitX = 500;
 let submitY = 250;
-let submitWidth = 100;
+let submitWidth = 300;
 let submitHeight = 50;
 
 function drawUI() {
