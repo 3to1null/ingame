@@ -11,7 +11,7 @@ let bulletSpeed = 5;
 // --- size of things
 //let screenWidth = 400;
 //let screenHeight = 400;
-let globalScaling = 1; // this is for a screen of 400 * 225
+let scale = 1; // this is for a screen of 400 * 225
 let targetAspectRatio = 16/9;
 
 let tankWidth = 15;
@@ -382,10 +382,10 @@ function windowResized() {
     //console.log(currentAspectRatio);
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
         resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
-        globalScaling = windowWidth/400;
+        scale = windowWidth/400;
     } else {
         resizeCanvas(windowHeight*targetAspectRatio, windowHeight);
-        globalScaling = windowHeight/225;
+        scale = windowHeight/225;
     }
 }
 

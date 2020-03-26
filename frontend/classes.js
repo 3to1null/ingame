@@ -39,29 +39,29 @@ class Tank {
 
     draw() {
         push();
-        translate(this.x, this.y);
+        translate(this.x * scale, this.y * scale);
         rotate(this.r);
         fill(colors[this.c]);
-        rect(0, 0, tankLength, tankWidth);
-        translate(barrelOffSet/2, 0);
+        rect(0, 0, tankLength * scale, tankWidth * scale);
+        translate(barrelOffSet/2 * scale, 0);
         rotate(-this.r);
         rotate(this.tr);
         rectMode(CORNER);
-        rect(-barrelOffSet/2, -barrelWidth/2, barrelLength, barrelWidth);
+        rect(-barrelOffSet/2 * scale, -barrelWidth/2 * scale, barrelLength * scale, barrelWidth * scale);
         pop();
     };
     
     drawHp() {
         fill(hpBackgroundcolor);
-        rect(this.x, this.y, hpWidth, hpHeight);
+        rect(this.x * scale, this.y * scale, hpWidth * scale, hpHeight * scale);
     }
 
     update() {
         this.v = cap(this.v,0,maxV);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
-        this.x = cap(this.x,0,width);
-        this.y = cap(this.y,0,height);
+        this.x = cap(this.x,0,width/scale);
+        this.y = cap(this.y,0,height/scale);
     }
 
     rotate(dr) {
@@ -72,12 +72,12 @@ class Tank {
         this.tr += dr;
     }
 
-    drawBullets() {
+    drawBullets() { // nts push and pop
         stroke(colors[this.c]);   
-        point(this.x, this.y); 
+        //point(this.x * scale, this.y * scale); 
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
-            point(bullet.x, bullet.y);
+            point(bullet.x * scale, bullet.y * scale);
         }
         stroke(colors.black);
     }
@@ -98,7 +98,7 @@ class Player extends Tank {
             this.v -= acceleration;
         }
 
-        this.tr = atan2(mouseY - this.y, mouseX - this.x)
+        this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
         
         super.update(); // Tank.update() function
         
@@ -120,10 +120,10 @@ class Player extends Tank {
     drawName() {
         textAlign(CENTER);
         fill(colors[this.c]);
-        text(this.name + " (You)", this.x,this.y - nameOffset);
+        text(this.name + " (You)", this.x * scale,(this.y - nameOffset) * scale);
     }
 
-    fire() {
+    fire() { // nts look at with and height
         this.bullets[floor(Math.random() * 10000000)] = new Bullet(
             this.x + (barrelLength - barrelOffSet) * cos(this.tr), 
             this.y + (barrelLength - barrelOffSet) * sin(this.tr), 
@@ -161,6 +161,6 @@ class Enemy extends Tank {
     drawName() {
         textAlign(CENTER);
         fill(colors[this.c]);
-        text(this.name, this.x,this.y - nameOffset);
+        text(this.name, this.x * scale,(this.y - nameOffset) * scale);
     }
 }
