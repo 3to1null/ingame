@@ -25,6 +25,9 @@ let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
 
+let bulletLength = 20;
+let bulletWidth = 10;
+
 let hpWidth = 100;
 let hpHeight = 5;
 let hpOffset = 15;
@@ -66,6 +69,7 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let bulletSprite;
 
 
 // #endregion
@@ -188,7 +192,7 @@ function setup() {
     windowResized();
     rectMode(CENTER);
     initColors();
-    
+    bulletSprite = loadImage('src/image/bullet.png');
     //input = createInput();
     //input.position(inputX,inputY);
 

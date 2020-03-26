@@ -75,7 +75,7 @@ class Bullet {
         this.y += sin(this.r)*this.v;
 
         if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
-            this.needsCleanup = true;
+            this.needsCleanup = true; // hahahahaha o wacht, dit is serieus? HAHAHAHHAHAHAHAHAHA
         }
 
     };
@@ -143,12 +143,15 @@ class Tank {
     }
 
     drawBullets() { // nts push and pop
-        stroke(colors[this.c]);   
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
+            push();
             point(bullet.x * scale, bullet.y * scale);
+            translate(bullet.x*scale,bullet.y*scale);
+            rotate(bullet.r);
+            image(bulletSprite, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
+            pop();
         }
-        stroke(colors.black);
     }
 }
 
