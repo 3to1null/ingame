@@ -9,8 +9,11 @@ let rotIncrease = 0.05;
 let bulletSpeed = 5;
 
 // --- size of things
-let screenWidth = 400;
-let screenHeight = 400;
+//let screenWidth = 400;
+//let screenHeight = 400;
+let globalScaling = 1; // this is for a screen of 400 * 225
+let targetAspectRatio = 16/9;
+
 let tankWidth = 15;
 let tankLength = 20;
 let barrelLength = 20;
@@ -49,6 +52,7 @@ let controls = {
 
 // --- colors of things
 let colors;
+let backgroundColor;
 let hpBackgroundColor;
 let hpRedLine = 0.25;
 
@@ -63,7 +67,7 @@ function initColors() {
         'blue': color(0,0,255),
         'purple': color(255,0,255),
     };
-
+    backgroundColor = color('#222');
     hpBackgroundColor = colors.black;
 }
 
@@ -188,9 +192,13 @@ function removePlayer(id) {
 //#region main game code
 
 function setup() {
-    createCanvas(screenWidth,screenHeight).parent('canvasholder');
+    createCanvas(0,0).parent('canvasholder');
+    windowResized();
     rectMode(CENTER);
     initColors();
+    
+
+
 }
 
 function draw() {
@@ -205,7 +213,7 @@ function draw() {
 
     updateEnemies();
     //updateBullets();
-    debugPlayers();
+    //debugPlayers();
 }
 
 function updateCurrentState(){
@@ -376,6 +384,18 @@ function debugPlayers() {
         
         
         //console.log(currentState.players[key]);
+    }
+}
+
+function windowResized() {
+    let currentAspectRatio = windowWidth/windowHeight;
+    //console.log(currentAspectRatio);
+    if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
+        resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
+        globalScaling = windowWidth/400;
+    } else {
+        resizeCanvas(windowHeight*targetAspectRatio, windowHeight);
+        globalScaling = windowHeight/225;
     }
 }
 
