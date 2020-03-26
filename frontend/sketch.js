@@ -11,7 +11,9 @@ let bulletSpeed = 5;
 // --- size of things
 //let screenWidth = 400;
 //let screenHeight = 400;
-let scale = 1; // this is for a screen of 400 * 225
+let scale = 1; // this is for a screen of referenceWidth x referenceHeight
+let referenceWidth = 1280
+let referenceHeight = 720
 let targetAspectRatio = 16/9;
 
 let tankWidth = 15;
@@ -369,7 +371,7 @@ function debugPlayers() {
         if (socket.id == key) {
             table.innerHTML += `<span style="background-color: ${subject.c}">${key} (you)<span><br>`;
         } else {
-            table.innerHTML += `<span style="background-color: ${subject.c}">${key}</span><br>`;            
+            table.innerHTML += `<span style="bacsground-color: ${subject.c}">${key}</span><br>`;            
         }
         
         
@@ -382,10 +384,10 @@ function windowResized() {
     //console.log(currentAspectRatio);
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
         resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
-        scale = windowWidth/400;
+        scale = windowWidth/referenceWidth;
     } else {
         resizeCanvas(windowHeight*targetAspectRatio, windowHeight);
-        scale = windowHeight/225;
+        scale = windowHeight/referenceHeight;
     }
 }
 
