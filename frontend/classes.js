@@ -1,10 +1,11 @@
 class Bullet {
-    constructor(x, y, r) {
+    constructor(x, y, r, isPlayerBullet) {
         this.x = x;
         this.y = y;
         this.v = bulletSpeed;
         this.r = r;
         this.needsCleanup = false;
+        this.isPlayerBullet = isPlayerBullet;
     }
 
     updateInternals(x,y,r){
@@ -14,7 +15,7 @@ class Bullet {
     }
 
     checkCollisions(){
-        enemies.forEach((enemy) => {
+        let colCheck = (enemy) => {
             let enemyTankVerticis = [];
             let o = {'x': enemy.x, 'y': enemy.y}
             enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
@@ -46,11 +47,25 @@ class Bullet {
                 }
             }
 
-            if(collision){
+            return collision
+        }
+
+
+        enemies.forEach((enemy) => {
+            if(colCheck(enemy)){
                 console.log('hit!')
                 this.needsCleanup = true;
+                // If we shot this bullet, broadcast the hit.
+                if(this.isPlayerBullet){
+                    socket.emit('bullet_hit', {'hit': enemy.id});
+                }
             }
         })
+
+        if(colCheck(player)){
+            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU')
+            this.needsCleanup = true;
+        }
     }
 
     update() {
@@ -186,7 +201,12 @@ class Player extends Tank {
             this.x + (barrelLength - barrelOffSet) * cos(this.tr), 
             this.y + (barrelLength - barrelOffSet) * sin(this.tr), 
             this.tr,
+            true
         );
+    }
+
+    onReceivedHit(){
+        console.log('Got hit!')
     }
 }
 
@@ -212,7 +232,7 @@ class Enemy extends Tank {
         for (const [bulletID, bulletState] of Object.entries(bulletsUpdate)){
             if(!(bulletID in this.bullets)){
                 // Create new bullet.
-                this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'])
+                this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'], false)
             }
         }
         // Loop through already existing bullets

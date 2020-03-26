@@ -44,6 +44,10 @@ io.on('connection', (socket) => {
     state["players"][socket.id] = data;
   });
 
+  socket.on('bullet_hit', (data) => {
+    io.to(data['hit']).emit('bullet_hit', {'shotBy': socket.id})
+  })
+
   socket.on('disconnect', (reason) => {
     console.log(`${socket.id} closed connection for reason: ${reason}.`)
     io.emit('delete', {

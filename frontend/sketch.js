@@ -122,6 +122,10 @@ socket.on('player_join', (data) => {
     addPlayer(data['id'], data['player'])
 })
 
+socket.on('bullet_hit', (data) => {
+    player.onReceivedHit();
+})
+
 socket.on('delete', (data) => {
     console.log("received a delete");
     console.log(data);
