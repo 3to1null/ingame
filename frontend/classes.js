@@ -4,6 +4,7 @@ class Bullet {
         this.y = y;
         this.v = bulletSpeed;
         this.r = r;
+        this.needsCleanup = false;
     }
 
     updateInternals(x,y,r){
@@ -15,6 +16,11 @@ class Bullet {
     update() {
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
+
+        if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
+            this.needsCleanup = true;
+        }
+
     };
 
 }
@@ -99,7 +105,8 @@ class Player extends Tank {
         }
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
-        
+
+        this.updateBullets();
         super.update(); // Tank.update() function
         
         /*socket.emit('update_player', { // maybe change this to emit('update_player', this); ?
@@ -115,6 +122,15 @@ class Player extends Tank {
         socket.emit('update_player', this); // this works apearantly?
         // console.log(this);
 
+    }
+
+    updateBullets(){
+        // Loop through already existing bullets
+        for (const [bulletID, bullet] of Object.entries(this.bullets)){
+            if(bullet.needsCleanup === true){
+                delete this.bullets[bulletID];
+            }
+        }
     }
 
     drawName() {
@@ -145,15 +161,23 @@ class Enemy extends Tank {
             this.hp = currentState.players[this.id]['hp'];
             this.updateBullets(currentState.players[this.id]['bullets']);
             super.update();
+            console.log(this.bullets)
         }
     }
 
     updateBullets(bulletsUpdate){
         if(bulletsUpdate === undefined){return;}
+        // Loop through new bullets
         for (const [bulletID, bulletState] of Object.entries(bulletsUpdate)){
             if(!(bulletID in this.bullets)){
                 // Create new bullet.
                 this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'])
+            }
+        }
+        // Loop through already existing bullets
+        for (const [bulletID, bullet] of Object.entries(this.bullets)){
+            if(bullet.needsCleanup === true){
+                delete this.bullets[bulletID];
             }
         }
     }
