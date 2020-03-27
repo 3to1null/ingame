@@ -38,6 +38,7 @@ let nameOffset = 25;
 
 
 // --- begin of things
+let startingLevel = 0;
 let tankBeginX = 0;
 let tankBeginY = 0;
 let tankBeginR = 0;
@@ -52,6 +53,7 @@ let hpRedLine = 0.25;
 let UIBackgroundColor;
 let buttonColor;
 let grassColor;
+let colliderColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -65,6 +67,7 @@ function initColors() {
     };
     backgroundColor = color('#222');
     grassColor = colors.green;
+    colliderColor = colors.red;
     //backgroundColor = colors.white;
     hpBackgroundColor = colors.red;
     hpColor = colors.green;
@@ -79,8 +82,7 @@ let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
-let startingLevel = 0;
-let level = new Level(levels[startingLevel]);
+let level;
 let addCollider = "none";
 let newCollider = {};
 
@@ -201,15 +203,15 @@ function preLoad() {
 }
 
 function setup() {
+    initColors();
     createCanvas(0,0).parent('canvasholder');
     windowResized();
     rectMode(CENTER);
-    initColors();
     bulletSprite = loadImage('src/image/bullet.png');
-    backgroundImage = loadImage('src/image/streets.jpg');
+    //backgroundImage = loadImage('src/image/streets.jpg');
     //input = createInput();
     //input.position(inputX,inputY);
-
+    loadLevel(startingLevel);
 }
 
 function draw() {
@@ -217,11 +219,11 @@ function draw() {
     if (gameState == 1) { // main game loop
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
+        level.drawGrass();
         drawUI();
         updateCurrentState();
         updatePlayer();
         updateEnemies();
-        //level.drawGrass();
         level.drawColliders();
     } else if (gameState == 2) { // options screen
         background(backgroundColor);
@@ -330,6 +332,7 @@ function debugPlayers() {
 function loadLevel(l) {
     level = new Level(levels[l]);
     backgroundImage = loadImage(level['backgroundImage']);
+    console.log(level);
     
 }
 

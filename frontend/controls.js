@@ -17,8 +17,10 @@ let controls = {
     'down': downKey,
     'fireWithMouse': true,
     'fire': fireKey,
-    'addCircleCollider': 67,
-    'addRectCollider': 82,
+    'addCircleCollider': 67, // c
+    'addRectCollider': 82, // r
+    'exportLevel': 69, // LMAO // e 
+    'addGrassPatch': 71 // g
     //'escapeCollider': ESCAPE
 }
 
@@ -66,8 +68,14 @@ function keyPressed() {
     }
     if (keyCode === ESCAPE) {
         addCollider = "none";
+        newCollider = {};
     }
-
+    if (keyCode == controls.exportLevel) {
+        console.log(JSON.stringify(level.environment));
+    }
+    if (keyCode == controls.addGrassPatch) {
+        addCollider = "grass"
+    }
     switch(controls.changing) {
         case 0: // the controls dont need changing
             if (keyCode == controls.fire) {
@@ -119,7 +127,6 @@ function keyPressed() {
 function mousePressed() {
     if (addCollider == "rect" ) {
         if (!newCollider.x1) {
-            //newCollider = new ColliderRect(newCollider.x1,newCollider.y1, mouseX/scale, mouseY/scale);
             newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
         } else {
             level.environment.colliders.push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
@@ -136,8 +143,19 @@ function mousePressed() {
         } 
     }
     
+    if (addCollider == "grass") {
+        if (!newCollider.x1) {
+            newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
+        } else {
+            level.environment.grass.push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
+            newCollider = {};
+        }
+    }
+
     if (mouseY < 30 && mouseX <30) { // nts fricking lelijk
         gameState = 2;
+        addCollider = "none";
+        newCollider = {};
     } else if (controls.fireWithMouse && gameState == 1) {
         player.fire();
     }
@@ -147,8 +165,14 @@ function mousePressed() {
 function mouseMoved() {
     if (addCollider == "rect") {
         if (newCollider.x1) {
-            newCollider.x2 = mouseX/scale;
-            newCollider.y2 = mouseY/scale;
+            newCollider.x2 = cap(mouseX/scale, newCollider.x1, referenceWidth);
+            newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
+        } 
+    }
+    if (addCollider == "grass") {
+        if (newCollider.x1) {
+            newCollider.x2 = cap(mouseX/scale, newCollider.x1, referenceWidth);
+            newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
         } 
     }
 

@@ -2,9 +2,20 @@
 
 class Level {
     constructor(data) {
-        this.backgroundImage = data.bgi;
+        this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
-        this.environment = data.environment;
+        this.environment = {'grass': [], 'colliders': []};
+        data.environment.grass.forEach(g => {
+            this.environment.grass.push(new ColliderRect(g.x1,g.y1,g.x2,g.y2));
+        });
+        data.environment.colliders.forEach(c => {
+            if (c.r) {
+                this.environment.colliders.push(new ColliderCircle(c.x,c.y,c.r));
+            }
+            if (c.x1) {
+                this.environment.colliders.push(new ColliderRect(c.x1,c.x1,c.x2,c.y2));
+            }
+        });
     }
 
     drawGrass() {
@@ -13,17 +24,17 @@ class Level {
         fill(grassColor);
         rectMode(CORNERS);
         let patch;
-        for(patch of this.environment.grass) {
-            //console.log(patch);
-            rect(patch.x1*scale,patch.y1*scale,patch.x2*scale,patch.y2*scale);
-        }
-        rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
+        level.environment.grass.forEach(g => {
+            rect(g.x1*scale,g.y1*scale,g.x2*scale,g.y2*scale);
+        });
+        rect(newCollider.x1*scale, newCollider.y1*scale, newCollider.x2*scale, newCollider.y2*scale);
         pop();
     }
     
     drawColliders() {
         push();
         noStroke();
+        fill(colliderColor);
         this.environment.colliders.forEach(c => {
             c.draw();
         });
@@ -52,7 +63,10 @@ class ColliderCircle {//extends Collider {
     }
     
     draw() {
+        push();
+        fill(colliderColor);
         ellipse(this.x*scale,this.y*scale,2*this.r*scale);
+        pop();
     }
 
     collideWithPoint(x,y) {
@@ -76,6 +90,7 @@ class ColliderRect { //extends Collider {
     draw() {
         push();
         rectMode(CORNERS);
+        fill(colliderColor);
         rect(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
         pop();
     }
@@ -304,7 +319,7 @@ class Tank {
         });
     }
 
-    isInWall() {
+    /*isInWall() {
         let p;
         for(p of level.environment.grass) {
             if (p.x1 < this.x && p.x2 > this.x && p.y1 < this.y && p.y2 > this.y) {
@@ -327,28 +342,11 @@ class Tank {
                         alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
                         break;
                 }
-                
-                /*switch(floor(facing)) {
-                    case 0: // facing right
-                        this.x = patch.x1;
-                        break;
-                    case 1: // facing down
-                        this.y = patch.y1;
-                        break;
-                    case 2: // facing left
-                        this.x = patch.x2;
-                        break;
-                    case 3: // facing up
-                        this.y = patch.y2;
-                        break;
-                    default:
-                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
-                }*/
                 return true;
             } 
         }
         return false;
-    }
+    }*/
 
     rotate(dr) {
         this.r += dr;
