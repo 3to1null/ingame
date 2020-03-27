@@ -102,10 +102,32 @@ function keyPressed() {
     //#endregion
 }
 
+let newPatch = {};
+
 function mousePressed() {
+    if (creatingLevel && !newPatch.x1) {
+        newPatch.x1 = mouseX/scale;
+        newPatch.y1 = mouseY/scale;
+    } else if (creatingLevel) {
+        level.environment.grass.push({'x1': newPatch.x1, 'y1': newPatch.y1, 'x2': newPatch.x2, 'y2': newPatch.y2});
+        newPatch = {};
+    }
     if (mouseY < 30 && mouseX <30) { // nts fricking lelijk
         gameState = 2;
     } else if (controls.fireWithMouse && gameState == 1) {
         player.fire();
     }
+}
+
+function mouseReleased() {
+    if (creatingLevel) {
+        
+    }
+}
+
+function mouseMoved() {
+    if (newPatch.x1) {
+        newPatch.x2 = mouseX/scale;
+        newPatch.y2 = mouseY/scale;
+    }  
 }

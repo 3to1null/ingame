@@ -8,10 +8,15 @@ let gameState = 0; /*
 */
 
 // --- speed of things
-let maxV = 3;
+let upgradeDuration = 300; // in frames, so 300 is around 5 seconds
+let maxV = 1;
+let superMaxV = 3;
 let acceleration = 0.1;
+let superAcceleration = 0.2;
 let rotIncrease = 0.05;
+let superRotIncrease = 0.1;
 let bulletSpeed = 5;
+let superBulletSpeed = 10; // is this a good idea?
 
 // --- size of things
 let scale = 1; // this is for a screen of referenceWidth x referenceHeight
@@ -24,6 +29,9 @@ let tankLength = 20;
 let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
+
+let bulletLength = 20;
+let bulletWidth = 10;
 
 let hpWidth = 100;
 let hpHeight = 5;
@@ -45,6 +53,7 @@ let hpBackgroundColor;
 let hpRedLine = 0.25;
 let UIBackgroundColor;
 let buttonColor;
+let grassColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -57,6 +66,8 @@ function initColors() {
         'purple': color(255,0,255),
     };
     backgroundColor = color('#222');
+    grassColor = colors.green;
+    //backgroundColor = colors.white;
     hpBackgroundColor = colors.red;
     hpColor = colors.green;
     UIBackgroundColor = color(51);
@@ -66,7 +77,12 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let bulletSprite;
+let backgroundImage;
 
+// --- level stuff
+let level = new Level(levels[0]);
+let creatingLevel = false;
 
 // #endregion
 
@@ -180,7 +196,7 @@ function removePlayer(id) {
 //#region main game code
 
 function preLoad() {
-
+    
 }
 
 function setup() {
@@ -188,7 +204,8 @@ function setup() {
     windowResized();
     rectMode(CENTER);
     initColors();
-    
+    bulletSprite = loadImage('src/image/bullet.png');
+    backgroundImage = loadImage('src/image/streets.jpg');
     //input = createInput();
     //input.position(inputX,inputY);
 
@@ -198,10 +215,12 @@ function draw() {
     if(!isInit){return;}
     if (gameState == 1) { // main game loop
         background(backgroundColor);
+        image(backgroundImage, 0, 0, width, height);
         drawUI();
         updateCurrentState();
         updatePlayer();
         updateEnemies();
+        level.drawGrass();
     } else if (gameState == 2) { // options screen
         background(backgroundColor);
         drawButtons();
@@ -304,6 +323,12 @@ function debugPlayers() {
     }
 }
 
+function loadLevel(l) {
+    level = new Level(levels[l]);
+    backgroundImage = loadImage(level['backgroundImage']);
+    
+}
+
 function windowResized() {
     let currentAspectRatio = windowWidth/windowHeight;
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
@@ -339,5 +364,9 @@ let rotatePointPoint = (point, origin, angle) => {
         sin(angle) * (point.x - origin.x) + cos(angle) * (point.y - origin.y) + origin.y
     );
 };
+
+function mod(n, m) {
+    return ((n % m) + m) % m;
+}
 
 //#endregion

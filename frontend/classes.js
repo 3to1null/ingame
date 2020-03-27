@@ -1,3 +1,26 @@
+class Level {
+    constructor(data) {
+        this.backgroundImage = data.bgi;
+        this.gameRules = data.gameRules;
+        this.environment = data.environment;
+    }
+
+    drawGrass() {
+        push();
+        noStroke();
+        fill(grassColor);
+        rectMode(CORNERS);
+        let patch;
+        for(patch of this.environment.grass) {
+            //console.log(patch);
+            rect(patch.x1*scale,patch.y1*scale,patch.x2*scale,patch.y2*scale);
+        }
+        rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
+        pop();
+    }
+
+}
+
 class Bullet {
     constructor(x, y, r, isPlayerBullet) {
         this.x = x;
@@ -75,13 +98,12 @@ class Bullet {
         this.y += sin(this.r)*this.v;
 
         if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
-            this.needsCleanup = true;
+            this.needsCleanup = true; // hahahahaha o wacht, dit is serieus? HAHAHAHHAHAHAHAHAHA
         }
 
     };
 
 }
-
 
 class Tank {
     constructor(id, c, x, y, r, v, tr) {
@@ -98,6 +120,28 @@ class Tank {
         this.c = c;
 
         this.bullets = {};
+        this.upgrades = {
+            'superSpeed': 0,
+            'machinegun': 0,
+            'juggernaut': 0 
+        };
+    }
+
+    upgrade(upgrade) {
+        switch(upgrade) {
+            case 'superSpeed':
+                this.upgrades.superSpeed = upgradeDuration;
+                break;
+            case 'machinegun':
+                this.upgrades.machinegun = upgradeDuration;
+                break;
+            case 'juggernaut':
+                this.upgrades.juggernaut = upgradeDuration;
+                break;
+            default:
+                alert("something went very wrong, this is not supposed to happen! error code 420 lmao");
+                break;
+        }
     }
 
     draw() {
@@ -127,11 +171,65 @@ class Tank {
     }
 
     update() {
-        this.v = cap(this.v,0,maxV);
+        let speedCap = maxV;
+        if (this.upgrades.superSpeed) {
+            speedCap = superMaxV;
+            this.upgrades.superSpeed--;
+        }
+        this.v = cap(this.v,0,speedCap);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
         this.y = cap(this.y,0,referenceHeight);
+        if (this.isInWall()) {
+            //this. r += PI;
+        }
+    }
+
+    isInWall() {
+        let p;
+        for(p of level.environment.grass) {
+            if (p.x1 < this.x && p.x2 > this.x && p.y1 < this.y && p.y2 > this.y) {
+                //let facing = mod(this.r/PI*2+ 0.5,4); // 0-1 = right, 1-2 = down etc.
+                let minD = min(this.x-p.x1,this.y-p.y1, p.x2-this.x,p.y2-this.y);
+                switch (minD) {
+                    case this.x-p.x1:
+                        this.x = p.x1;
+                        break;
+                    case this.y-p.y1:
+                        this.y = p.y1;
+                        break;
+                    case p.x2 - this.x:
+                        this.x = p.x2;
+                        break;
+                    case p.y2 - this.y:
+                        this.y = p.y2;
+                        break;  
+                    default:
+                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
+                        break;
+                }
+                
+                /*switch(floor(facing)) {
+                    case 0: // facing right
+                        this.x = patch.x1;
+                        break;
+                    case 1: // facing down
+                        this.y = patch.y1;
+                        break;
+                    case 2: // facing left
+                        this.x = patch.x2;
+                        break;
+                    case 3: // facing up
+                        this.y = patch.y2;
+                        break;
+                    default:
+                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
+                }*/
+                return true;
+            } 
+        }
+        return false;
     }
 
     rotate(dr) {
@@ -143,12 +241,15 @@ class Tank {
     }
 
     drawBullets() { // nts push and pop
-        stroke(colors[this.c]);   
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
+            push();
             point(bullet.x * scale, bullet.y * scale);
+            translate(bullet.x*scale,bullet.y*scale);
+            rotate(bullet.r);
+            image(bulletSprite, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
+            pop();
         }
-        stroke(colors.black);
     }
 }
 
