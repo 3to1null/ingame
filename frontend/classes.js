@@ -20,6 +20,14 @@ class Level {
         rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
         pop();
     }
+    
+    drawColliders() {
+        push();
+        noStroke();
+        this.environment.colliders.forEach(c => {
+            c.draw();
+        });
+    }
 }
 
 class Collider {
@@ -28,24 +36,42 @@ class Collider {
     }
 }
 
-class ColliderCircle extends Collider {
+class ColliderCircle {//extends Collider {
     constructor(x,y,r) {
         this.x = x,
         this.y = y,
         this.r = r
     }
+    
+    draw() {
+        ellipse(this.x*scale,this.y*scale,200);
+    }
+
     collideWithPoint(x,y) {
         return dist(this.x, this.y, x, y)<this.r;
     }
+
+    collissionPoint(x,y) {
+        let factor = this.r/dist(this.x, this.y, x, y); 
+        return {'x': this.x + (x-this.x)*factor, 'y': this.y + (y-this.y)*factor};
+    }
 }
 
-class ColliderRect extends Collider {
+class ColliderRect { //extends Collider {
     constructor(x1,y1,x2,y2) {
         this.x1 = x1,
         this.y1 = y1,
         this.x2 = x2,
         this.y2 = y2
     }
+
+    draw() {
+        push();
+        rectMode(CORNERS);
+        rect(this.x1,this.y1,this.x2,this.y2);
+        pop();
+    }
+
     collideWithPoint(x,y) {
         return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
     }
@@ -211,9 +237,16 @@ class Tank {
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
         this.y = cap(this.y,0,referenceHeight);
-        if (this.isInWall()) {
-            //this. r += PI;
-        }
+
+        // --- collisions:
+        level.environment.colliders.forEach(c => {
+            if (c.collideWithPoint(this.x, this.y)) {
+                console.log(c.collissionPoint(this.x,this.y));
+                let newPos = c.collissionPoint(this.x, this.y);
+                this.x = newPos.x;
+                this.y = newPos.y;
+            }
+        });
     }
 
     isInWall() {

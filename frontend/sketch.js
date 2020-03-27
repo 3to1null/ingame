@@ -220,7 +220,8 @@ function draw() {
         updateCurrentState();
         updatePlayer();
         updateEnemies();
-        level.drawGrass();
+        //level.drawGrass();
+        level.drawColliders();
     } else if (gameState == 2) { // options screen
         background(backgroundColor);
         drawButtons();
