@@ -365,4 +365,8 @@ let rotatePointPoint = (point, origin, angle) => {
     );
 };
 
+function mod(n, m) {
+    return ((n % m) + m) % m;
+}
+
 //#endregion

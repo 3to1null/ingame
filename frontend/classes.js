@@ -181,6 +181,55 @@ class Tank {
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
         this.y = cap(this.y,0,referenceHeight);
+        if (this.isInWall()) {
+            //this. r += PI;
+        }
+    }
+
+    isInWall() {
+        let p;
+        for(p of level.environment.grass) {
+            if (p.x1 < this.x && p.x2 > this.x && p.y1 < this.y && p.y2 > this.y) {
+                //let facing = mod(this.r/PI*2+ 0.5,4); // 0-1 = right, 1-2 = down etc.
+                let minD = min(this.x-p.x1,this.y-p.y1, p.x2-this.x,p.y2-this.y);
+                switch (minD) {
+                    case this.x-p.x1:
+                        this.x = p.x1;
+                        break;
+                    case this.y-p.y1:
+                        this.y = p.y1;
+                        break;
+                    case p.x2 - this.x:
+                        this.x = p.x2;
+                        break;
+                    case p.y2 - this.y:
+                        this.y = p.y2;
+                        break;  
+                    default:
+                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
+                        break;
+                }
+                
+                /*switch(floor(facing)) {
+                    case 0: // facing right
+                        this.x = patch.x1;
+                        break;
+                    case 1: // facing down
+                        this.y = patch.y1;
+                        break;
+                    case 2: // facing left
+                        this.x = patch.x2;
+                        break;
+                    case 3: // facing up
+                        this.y = patch.y2;
+                        break;
+                    default:
+                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
+                }*/
+                return true;
+            } 
+        }
+        return false;
     }
 
     rotate(dr) {
