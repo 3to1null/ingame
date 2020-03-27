@@ -29,6 +29,7 @@ let levels = [
                 //new ColliderCircle(110,110,20),
                 //new ColliderCircle(120,120,20),
                 new ColliderCircle(130,130,20),
+                new ColliderRect(130,130,200,200),
             ]
             // collisions:
         }

@@ -44,7 +44,7 @@ class ColliderCircle {//extends Collider {
     }
     
     draw() {
-        ellipse(this.x*scale,this.y*scale,200);
+        ellipse(this.x*scale,this.y*scale,2*this.r*scale);
     }
 
     collideWithPoint(x,y) {
@@ -68,12 +68,35 @@ class ColliderRect { //extends Collider {
     draw() {
         push();
         rectMode(CORNERS);
-        rect(this.x1,this.y1,this.x2,this.y2);
+        rect(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
         pop();
     }
 
     collideWithPoint(x,y) {
         return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+    }
+
+    collissionPoint(x,y) {
+    let newPos = {'x': x, 'y': y};
+    let minD = min(this.x1-x,this.y1-y, x-this.x2,y-this.y2);
+    switch (minD) {    
+        case this.x1-x:
+            newPos.x = this.x2;
+            break;
+        case this.y1-y:
+            newPos.y = this.y2;
+            break;
+        case x-this.x2:
+            newPos.x = this.x1;
+            break;
+        case y-this.y2:
+            newPos.y = this.y1;
+            break;  
+        default:
+            alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
+            break;
+        }
+        return newPos;
     }
 }
 
@@ -271,7 +294,6 @@ class Tank {
         // --- collisions:
         level.environment.colliders.forEach(c => {
             if (c.collideWithPoint(this.x, this.y)) {
-                console.log(c.collissionPoint(this.x,this.y));
                 let newPos = c.collissionPoint(this.x, this.y);
                 this.x = newPos.x;
                 this.y = newPos.y;
