@@ -18,7 +18,7 @@ let controls = {
     'fireWithMouse': true,
     'fire': fireKey,
     'addCircleCollider': 67,
-    'addRectCollider': 83,
+    'addRectCollider': 82,
     //'escapeCollider': ESCAPE
 }
 
