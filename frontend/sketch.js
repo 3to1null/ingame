@@ -9,14 +9,11 @@ let gameState = 0; /*
 
 // --- speed of things
 let upgradeDuration = 300; // in frames, so 300 is around 5 seconds
-let maxV = 1;
-let superMaxV = 3;
+let maxV = 2;
 let acceleration = 0.1;
-let superAcceleration = 0.2;
 let rotIncrease = 0.05;
-let superRotIncrease = 0.1;
 let bulletSpeed = 5;
-let superBulletSpeed = 10; // is this a good idea?
+let bulletDamage = 10;
 
 // --- size of things
 let scale = 1; // this is for a screen of referenceWidth x referenceHeight
@@ -81,7 +78,7 @@ let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
-let level = new Level(levels[0]);
+let level = new Level(levels[1]);
 let creatingLevel = false;
 
 // #endregion
@@ -158,6 +155,7 @@ function initPlayers(data) {
                 selectedPlayer['y'], 
                 selectedPlayer['r'], 
                 selectedPlayer['tr'], 
+                selectedPlayer['hp'], 
                 selectedPlayer['v']
             ));
         }
@@ -173,7 +171,8 @@ function addPlayer(id, newPlayer) {
             newPlayer.x, 
             newPlayer.y, 
             newPlayer.r, 
-            newPlayer.v
+            newPlayer.v,
+            newPlayer.hp,
         )
     );
 }
@@ -185,11 +184,10 @@ function removePlayer(id) {
             console.log(id + " left the game");
         }
     }
-    console.log(currentState)
+
     delete currentState['players'][id];
     delete bufferStates[0]['players'][id];
     delete bufferStates[1]['players'][id];
-    console.log(currentState)
 }
 //#endregion
 
@@ -267,6 +265,7 @@ function updateCurrentState(){
                     'r': new_r,
                     'v': new_v,
                     'tr': new_tr,
+                    'hp': pps['hp'],
                     'c': pps['c'],
                     'name': pps['name'],
                     'bullets': pps['bullets'],
@@ -280,6 +279,7 @@ function updateCurrentState(){
                     'v': nps['v'],
                     'tr': linearInter(pps['tr'], nps['tr'], progress),
                     'c': nps['c'],
+                    'hp': nps['hp'],
                     'name': nps['name'],
                     'bullets': nps['bullets'],
                 }
@@ -287,17 +287,16 @@ function updateCurrentState(){
 
 
         }
-
     };
 }
 
-function updateEnemies() { // maybe do something here to check the correct amount of enemies
-    for (var i = 0; i<enemies.length; i++) {
-        enemies[i].update();
-        enemies[i].draw();
-        enemies[i].drawName();
-        enemies[i].drawBullets();
-    }
+function updateEnemies() { 
+    enemies.forEach((enemy) => {
+        enemy.update();
+        enemy.draw();
+        enemy.drawName();
+        enemy.drawBullets();
+    });
 }
 
 function updatePlayer() {
