@@ -228,7 +228,7 @@ function draw() {
         drawButtons();
         //updateCurrentState();
         //updatePlayer();
-        newCollider.draw();
+        //newCollider.draw();
     }
 }
 //#endregion
