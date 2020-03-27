@@ -1,3 +1,26 @@
+class Level {
+    constructor(data) {
+        this.backgroundImage = data.bgi;
+        this.gameRules = data.gameRules;
+        this.environment = data.environment;
+    }
+
+    drawGrass() {
+        push();
+        noStroke();
+        fill(grassColor);
+        rectMode(CORNERS);
+        let patch;
+        for(patch of this.environment.grass) {
+            //console.log(patch);
+            rect(patch.x1*scale,patch.y1*scale,patch.x2*scale,patch.y2*scale);
+        }
+        rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
+        pop();
+    }
+
+}
+
 class Bullet {
     constructor(x, y, r, isPlayerBullet) {
         this.x = x;
@@ -82,7 +105,6 @@ class Bullet {
 
 }
 
-
 class Tank {
     constructor(id, c, x, y, r, v, tr) {
         this.id = id;
@@ -98,6 +120,28 @@ class Tank {
         this.c = c;
 
         this.bullets = {};
+        this.upgrades = {
+            'superSpeed': 0,
+            'machinegun': 0,
+            'juggernaut': 0 
+        };
+    }
+
+    upgrade(upgrade) {
+        switch(upgrade) {
+            case 'superSpeed':
+                this.upgrades.superSpeed = upgradeDuration;
+                break;
+            case 'machinegun':
+                this.upgrades.machinegun = upgradeDuration;
+                break;
+            case 'juggernaut':
+                this.upgrades.juggernaut = upgradeDuration;
+                break;
+            default:
+                alert("something went very wrong, this is not supposed to happen! error code 420 lmao");
+                break;
+        }
     }
 
     draw() {
@@ -127,7 +171,12 @@ class Tank {
     }
 
     update() {
-        this.v = cap(this.v,0,maxV);
+        let speedCap = maxV;
+        if (this.upgrades.superSpeed) {
+            speedCap = superMaxV;
+            this.upgrades.superSpeed--;
+        }
+        this.v = cap(this.v,0,speedCap);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
