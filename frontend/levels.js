@@ -25,7 +25,10 @@ let levels = [
                 {"x1":120.66666666666667,"y1":402,"x2":186,"y2":419.3333333333333}
             ],
             'colliders': [
-                {'type': 'circle', }
+                new ColliderCircle(100,100,20),
+                new ColliderCircle(110,110,20),
+                new ColliderCircle(120,120,20),
+                new ColliderCircle(130,130,20),
             ]
             // collisions:
         }
@@ -37,8 +40,12 @@ let levels = [
             'superMaxV': 6,
             'upgradeDuration': 300,
         },
+<<<<<<< HEAD
         'environment': {
             'grass': []
         }
+=======
+        
+>>>>>>> b97abdacca229610f6adc6324b1fa2b6c271deb7
     }
 ];
