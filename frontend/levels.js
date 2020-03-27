@@ -23,7 +23,14 @@ let levels = [
                 {"x1":90.66666666666667,"y1":315.3333333333333,"x2":274.6666666666667,"y2":368},
                 {"x1":224.66666666666666,"y1":368.6666666666667,"x2":266,"y2":389.3333333333333},
                 {"x1":120.66666666666667,"y1":402,"x2":186,"y2":419.3333333333333}
+            ],
+            'colliders': [
+                new ColliderCircle(100,100,20),
+                new ColliderCircle(110,110,20),
+                new ColliderCircle(120,120,20),
+                new ColliderCircle(130,130,20),
             ]
+            // collisions:
         }
     },
     { // level 1
@@ -33,5 +40,12 @@ let levels = [
             'superMaxV': 6,
             'upgradeDuration': 300,
         },
+<<<<<<< HEAD
+        'environment': {
+            'grass': []
+        }
+=======
+        
+>>>>>>> b97abdacca229610f6adc6324b1fa2b6c271deb7
     }
 ];

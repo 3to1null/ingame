@@ -1,3 +1,5 @@
+// class maken collision rect
+
 class Level {
     constructor(data) {
         this.backgroundImage = data.bgi;
@@ -18,7 +20,35 @@ class Level {
         rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
         pop();
     }
+}
 
+class Collider {
+    constructor() {
+        
+    }
+}
+
+class ColliderCircle extends Collider {
+    constructor(x,y,r) {
+        this.x = x,
+        this.y = y,
+        this.r = r
+    }
+    collideWithPoint(x,y) {
+        return dist(this.x, this.y, x, y)<this.r;
+    }
+}
+
+class ColliderRect extends Collider {
+    constructor(x1,y1,x2,y2) {
+        this.x1 = x1,
+        this.y1 = y1,
+        this.x2 = x2,
+        this.y2 = y2
+    }
+    collideWithPoint(x,y) {
+        return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+    }
 }
 
 class Bullet {
@@ -26,6 +56,7 @@ class Bullet {
         this.x = x;
         this.y = y;
         this.v = bulletSpeed;
+        this.dmg = bulletDamage;
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
@@ -78,7 +109,10 @@ class Bullet {
             if(colCheck(enemy)){
                 console.log('hit!')
                 this.needsCleanup = true;
-                // If we shot this bullet, broadcast the hit.
+
+                enemy.hp -= this.dmg;
+                enemy.isHit = true;
+
                 if(this.isPlayerBullet){
                     socket.emit('bullet_hit', {'hit': enemy.id});
                 }
@@ -86,7 +120,9 @@ class Bullet {
         })
 
         if(colCheck(player)){
-            console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU')
+            // We got hit!
+            player.hp -= this.dmg;
+            player.isHit = true;
             this.needsCleanup = true;
         }
     }
@@ -98,7 +134,7 @@ class Bullet {
         this.y += sin(this.r)*this.v;
 
         if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
-            this.needsCleanup = true; // hahahahaha o wacht, dit is serieus? HAHAHAHHAHAHAHAHAHA
+            this.needsCleanup = true;
         }
 
     };
@@ -118,6 +154,9 @@ class Tank {
         this.hp = 100;
         this.name = c;
         this.c = c;
+
+        this.needsCleanup = false;
+        this.isHit = false;
 
         this.bullets = {};
         this.upgrades = {
@@ -145,10 +184,19 @@ class Tank {
     }
 
     draw() {
+        let tankDrawColor;
+
+        if(this.isHit){
+            tankDrawColor = "white";
+            this.isHit = false;
+        }else{
+            tankDrawColor = this.c;
+        }
+
         push();
         translate(this.x * scale, this.y * scale);
         rotate(this.r);
-        fill(colors[this.c]);
+        fill(colors[tankDrawColor]);
         rect(0, 0, tankLength * scale, tankWidth * scale);
         translate(barrelOffSet/2 * scale, 0);
         rotate(-this.r);
@@ -156,6 +204,7 @@ class Tank {
         rectMode(CORNER);
         rect(-barrelOffSet/2 * scale, -barrelWidth/2 * scale, barrelLength * scale, barrelWidth * scale);
         pop();
+
         this.drawHp();
     };
     
@@ -166,11 +215,22 @@ class Tank {
         fill(hpBackgroundColor);
         rect(this.x * scale, (this.y - hpOffset) * scale, hpWidth * scale, hpHeight * scale);
         fill(hpColor);
-        rect(this.x * scale, (this.y - hpOffset) * scale, (this.hp/startHp)*hpWidth*scale, hpHeight*scale);
+
+        let hpw = cap((this.hp/startHp), 0, 100) * hpWidth
+        rect(
+            (this.x - (hpWidth - hpw)/2) * scale,
+            (this.y - hpOffset) * scale, 
+            hpw * scale,
+            hpHeight * scale
+        );
         pop()
     }
 
     update() {
+        if(this.hp < 0){
+            this.destroy();
+        }
+
         let speedCap = maxV;
         if (this.upgrades.superSpeed) {
             speedCap = superMaxV;
@@ -240,7 +300,7 @@ class Tank {
         this.tr += dr;
     }
 
-    drawBullets() { // nts push and pop
+    drawBullets() {
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
             push();
@@ -315,6 +375,11 @@ class Player extends Tank {
     onReceivedHit(){
         console.log('Got hit!')
     }
+
+    destroy(){
+        // Needs fancy animation
+        location.reload();
+    }
 }
 
 class Enemy extends Tank {
@@ -354,5 +419,9 @@ class Enemy extends Tank {
         textAlign(CENTER);
         fill(colors[this.c]);
         text(this.name, this.x * scale,(this.y - nameOffset) * scale);
+    }
+
+    destroy(){
+        // Needs fancy animation
     }
 }
