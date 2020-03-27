@@ -17,6 +17,9 @@ let controls = {
     'down': downKey,
     'fireWithMouse': true,
     'fire': fireKey,
+    'addCircleCollider': 67,
+    'addRectCollider': 83,
+    //'escapeCollider': ESCAPE
 }
 
 
@@ -53,6 +56,16 @@ function keyPressed() {
         controls.changing = 0;
         controlText = "";
         controlTextOffset = 0;
+    }
+
+    if(keyCode == controls.addCircleCollider) {
+        addCollider = "circle";
+    }
+    if (keyCode == controls.addRectCollider) {
+        addCollider = "rect";
+    }
+    if (keyCode === ESCAPE) {
+        addCollider = "none";
     }
 
     switch(controls.changing) {
@@ -102,16 +115,27 @@ function keyPressed() {
     //#endregion
 }
 
-let newPatch = {};
 
 function mousePressed() {
-    if (creatingLevel && !newPatch.x1) {
-        newPatch.x1 = mouseX/scale;
-        newPatch.y1 = mouseY/scale;
-    } else if (creatingLevel) {
-        level.environment.grass.push({'x1': newPatch.x1, 'y1': newPatch.y1, 'x2': newPatch.x2, 'y2': newPatch.y2});
-        newPatch = {};
+    if (addCollider == "rect" ) {
+        if (!newCollider.x1) {
+            //newCollider = new ColliderRect(newCollider.x1,newCollider.y1, mouseX/scale, mouseY/scale);
+            newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
+        } else {
+            level.environment.colliders.push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
+            newCollider = {};
+        }
     }
+    
+    if (addCollider == "circle") {
+        if (!newCollider.x) {
+            newCollider = {'x': mouseX/scale, 'y': mouseY/scale, 'r': 0};
+        } else {
+            level.environment.colliders.push(new ColliderCircle(newCollider.x,newCollider.y,newCollider.r));
+            newCollider = {};
+        } 
+    }
+    
     if (mouseY < 30 && mouseX <30) { // nts fricking lelijk
         gameState = 2;
     } else if (controls.fireWithMouse && gameState == 1) {
@@ -119,15 +143,18 @@ function mousePressed() {
     }
 }
 
-function mouseReleased() {
-    if (creatingLevel) {
-        
-    }
-}
 
 function mouseMoved() {
-    if (newPatch.x1) {
-        newPatch.x2 = mouseX/scale;
-        newPatch.y2 = mouseY/scale;
-    }  
+    if (addCollider == "rect") {
+        if (newCollider.x1) {
+            newCollider.x2 = mouseX/scale;
+            newCollider.y2 = mouseY/scale;
+        } 
+    }
+
+    if (addCollider == "circle") {
+        if (newCollider.x) {
+            newCollider.r = dist(newCollider.x,newCollider.y,mouseX/scale,mouseY/scale);
+        }
+    }
 }
