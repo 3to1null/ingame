@@ -79,7 +79,7 @@ let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
-let level = new Level(levels[1]);
+let level = new Level(levels[0]);
 let creatingLevel = false;
 
 // #endregion
