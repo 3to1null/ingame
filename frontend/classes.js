@@ -253,7 +253,7 @@ class Tank {
     }
 
     update() {
-        if(this.hp < 0){
+        if(this.hp <= 0){
             this.destroy();
         }
 
@@ -411,7 +411,10 @@ class Player extends Tank {
 
     destroy(){
         // Needs fancy animation
-        location.reload();
+        if(gameState !== 3){
+            gameState = 3;
+            location.reload();
+        }
     }
 }
 
