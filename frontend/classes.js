@@ -27,6 +27,14 @@ class Level {
         this.environment.colliders.forEach(c => {
             c.draw();
         });
+        rectMode(CORNERS);
+        if (addCollider == "rect" && newCollider.x2) {
+            rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
+        }
+        if (addCollider == "circle" && newCollider.r) {
+            ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        }
+        pop();
     }
 }
 

@@ -79,8 +79,10 @@ let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
-let level = new Level(levels[0]);
-let creatingLevel = false;
+let startingLevel = 0;
+let level = new Level(levels[startingLevel]);
+let addCollider = "none";
+let newCollider = {};
 
 // #endregion
 
@@ -226,6 +228,7 @@ function draw() {
         drawButtons();
         //updateCurrentState();
         //updatePlayer();
+        newCollider.draw();
     }
 }
 //#endregion
