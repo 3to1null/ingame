@@ -40,12 +40,6 @@ let levels = [
             'superMaxV': 6,
             'upgradeDuration': 300,
         },
-<<<<<<< HEAD
-        'environment': {
-            'grass': []
-        }
-=======
         
->>>>>>> b97abdacca229610f6adc6324b1fa2b6c271deb7
     }
 ];
