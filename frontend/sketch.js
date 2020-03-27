@@ -4,6 +4,7 @@ let gameState = 0; /*
                 0 = not inited
                 1 = in main game loop
                 2 = options menu
+                3 = Dead AF
 
 */
 
