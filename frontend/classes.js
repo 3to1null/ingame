@@ -1,3 +1,5 @@
+// class maken collision rect
+
 class Level {
     constructor(data) {
         this.backgroundImage = data.bgi;
@@ -18,7 +20,35 @@ class Level {
         rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
         pop();
     }
+}
 
+class Collider {
+    constructor() {
+        
+    }
+}
+
+class ColliderCircle extends Collider {
+    constructor(x,y,r) {
+        this.x = x,
+        this.y = y,
+        this.r = r
+    }
+    collideWithPoint(x,y) {
+        return dist(this.x, this.y, x, y)<this.r;
+    }
+}
+
+class ColliderRect extends Collider {
+    constructor(x1,y1,x2,y2) {
+        this.x1 = x1,
+        this.y1 = y1,
+        this.x2 = x2,
+        this.y2 = y2
+    }
+    collideWithPoint(x,y) {
+        return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+    }
 }
 
 class Bullet {
