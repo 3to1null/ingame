@@ -85,25 +85,20 @@ class ColliderRect { //extends Collider {
     }
 
     collissionPoint(x,y) {
-    let newPos = {'x': x, 'y': y};
-    let minD = min(this.x1-x,this.y1-y, x-this.x2,y-this.y2);
-    switch (minD) {    
-        case this.x1-x:
-            newPos.x = this.x2;
-            break;
-        case this.y1-y:
-            newPos.y = this.y2;
-            break;
-        case x-this.x2:
+        let newPos = {'x': x, 'y': y};
+        let minD = min(x-this.x1,y-this.y1, this.x2-x,this.y2-y);
+        if (minD == x-this.x1) {// left
             newPos.x = this.x1;
-            break;
-        case y-this.y2:
-            newPos.y = this.y1;
-            break;  
-        default:
-            alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
-            break;
         }
+        if (minD == y-this.y1) {// up
+            newPos.y = this.y1;
+        }
+        if (minD == this.x2-x) {// right
+            newPos.x = this.x2;
+        }
+        if (minD == this.y2-y) { // down
+            newPos.y = this.y2;
+        }  
         return newPos;
     }
 }
