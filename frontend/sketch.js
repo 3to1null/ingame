@@ -376,4 +376,78 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
+
+    var intersection;
+  
+    // calculate the distance to intersection point
+    var uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    var uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+  
+    // if uA and uB are between 0-1, lines are colliding
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+  
+      if(this._collideDebug || calcIntersection){
+        // calc the point where the lines meet
+        var intersectionX = x1 + (uA * (x2-x1));
+        var intersectionY = y1 + (uA * (y2-y1));
+      }
+  
+      if(this._collideDebug){
+        this.ellipse(intersectionX,intersectionY,10,10);
+      }
+  
+      if(calcIntersection){
+        intersection = {
+          "x":intersectionX,
+          "y":intersectionY
+        }
+        return intersection;
+      }else{
+        return true;
+      }
+    }
+    if(calcIntersection){
+      intersection = {
+        "x":false,
+        "y":false
+      }
+      return intersection;
+    }
+    return false;
+  }
+
+function collideLineRect(x1, y1, x2, y2, rx, ry, rw, rh, calcIntersection) {
+
+    // check if the line has hit any of the rectangle's sides. uses the collideLineLine function above
+    var left, right, top, bottom, intersection;
+  
+    if(calcIntersection){
+       left =   this.collideLineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh,true);
+       right =  this.collideLineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh,true);
+       top =    this.collideLineLine(x1,y1,x2,y2, rx,ry, rx+rw,ry,true);
+       bottom = this.collideLineLine(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh,true);
+       intersection = {
+          "left" : left,
+          "right" : right,
+          "top" : top,
+          "bottom" : bottom
+      }
+    }else{
+      //return booleans
+       left =   this.collideLineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh);
+       right =  this.collideLineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
+       top =    this.collideLineLine(x1,y1,x2,y2, rx,ry, rx+rw,ry);
+       bottom = this.collideLineLine(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+    }
+  
+    // if ANY of the above are true, the line has hit the rectangle
+    if (left || right || top || bottom) {
+      if(calcIntersection){
+        return intersection;
+      }
+      return true;
+    }
+    return false;
+  }
 //#endregion

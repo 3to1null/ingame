@@ -73,6 +73,10 @@ class ColliderCircle {//extends Collider {
         return dist(this.x, this.y, x, y)<this.r;
     }
 
+    collideWithTank(tankVerticis, tankCenter){
+        return false;
+    }
+
     collissionPoint(x,y) {
         let factor = this.r/dist(this.x, this.y, x, y); 
         return {'x': this.x + (x-this.x)*factor, 'y': this.y + (y-this.y)*factor};
@@ -97,6 +101,64 @@ class ColliderRect { //extends Collider {
 
     collideWithPoint(x,y) {
         return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+    }
+
+    collideWithTank(tankVerticis, tankCenter){
+        let next = 0;
+        for (let current=0; current<tankVerticis.length; current++) {
+            // get next vertex in list if we've hit the end, wrap around to 0
+            next = current+1;
+            if (next == tankVerticis.length) {
+                next = 0;
+            }
+          
+            let vc = tankVerticis[current];
+            let vn = tankVerticis[next];
+          
+            let collision = collideLineRect(vc.x,vc.y,vn.x,vn.y, this.x1,this.y1,this.x2-this.x1,this.y2-this.y1);
+            if (collision) {
+                // Which vector should handle newpos for which collision?
+                let orderedVectors = {'bottom' : vc, 'right' : vc, 'left' : vc, 'top' : vc}
+                for (let current=0; current<tankVerticis.length; current++) {
+                    let vect = tankVerticis[current];
+                    if(!this.collideWithPoint(vect.x, vect.y)){
+                        continue;
+                    }
+                    if(vect['x'] > orderedVectors.left.x){
+                        orderedVectors.left = vect;
+                    }
+                    if(vect['x'] < orderedVectors.right.x){
+                        orderedVectors.right = vect;
+                    }
+                    if(vect['y'] > orderedVectors.top.y){
+                        orderedVectors.top = vect;
+                    }
+                    if(vect['y'] < orderedVectors.bottom.y){
+                        orderedVectors.bottom = vect;
+                    }
+                }
+
+                // calc intersection  
+                collision = collideLineRect(vc.x,vc.y,vn.x,vn.y, this.x1,this.y1,this.x2-this.x1,this.y2-this.y1, true);
+                let newPos = {'x': tankCenter.x, 'y': tankCenter.y}
+                if(collision.left.x){
+                    newPos['x'] = newPos['x'] - (orderedVectors.left.x - collision.left.x);
+                }
+                if(collision.right.x){
+                    newPos['x'] = newPos['x'] + (collision.right.x - orderedVectors.right.x);
+                }
+                if(collision.top.y){
+                    newPos['y'] = newPos['y'] - (orderedVectors.top.y - collision.top.y);
+                }
+                if(collision.bottom.y){
+                    newPos['y'] = newPos['y'] + (collision.bottom.y - orderedVectors.bottom.y);
+                }
+                return newPos;
+            }
+            
+        }
+        
+        return false;
     }
 
     collissionPoint(x,y) {
@@ -308,15 +370,6 @@ class Tank {
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
         this.y = cap(this.y,0,referenceHeight);
-
-        // --- collisions:
-        level.environment.colliders.forEach(c => {
-            if (c.collideWithPoint(this.x, this.y)) {
-                let newPos = c.collissionPoint(this.x, this.y);
-                this.x = newPos.x;
-                this.y = newPos.y;
-            }
-        });
     }
 
     /*isInWall() {
@@ -386,21 +439,40 @@ class Player extends Tank {
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
 
-        this.updateBullets();
         super.update(); // Tank.update() function
-        
-        /*socket.emit('update_player', { // maybe change this to emit('update_player', this); ?
-            'x': this.x,
-            'y': this.y,
-            'r': this.r,
-            'v': this.v,
-            'tr': this.tr,
-            'name': this.name,
-            'c': this.c,
-        });*/
+
+        // --- collisions:
+        let tankVerticis = [
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+        ]
+        // DEBUG hitbox
+        push();
+        stroke(colors['white'])
+        point(tankVerticis[0].x * scale, tankVerticis[0].y * scale);
+        point(tankVerticis[1].x * scale, tankVerticis[1].y * scale);
+        point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
+        point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
+        pop();
+        level.environment.colliders.forEach(c => {
+            // if (c.collideWithPoint(this.x, this.y)) {
+            //     let newPos = c.collissionPoint(this.x, this.y);
+            //     this.x = newPos.x;
+            //     this.y = newPos.y;
+            // }
+            let tankLevelCol = c.collideWithTank(tankVerticis, {'x': this.x, 'y': this.y});
+            
+            if (tankLevelCol){
+                this.x = tankLevelCol.x;
+                this.y = tankLevelCol.y;
+            }
+        });
+
+        this.updateBullets();
 
         socket.emit('update_player', this); // this works apearantly?
-        // console.log(this);
 
     }
 
