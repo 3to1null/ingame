@@ -48,24 +48,15 @@ function changeFire () {
 
 function keyPressed() {
     //#region changing controls DIT IS HECKA LELIJK
-    //let textBox = document.getElementById("controls");
     if (controls.changing && keyCode == ESCAPE) {
         controls.changing = 0;
         controlText = "";
         controlTextOffset = 0;
     }
 
-    // if(keyCode == controls.addCircleCollider) {
-    //     addCollider = "circle";
-
-    // }
-    // if (keyCode == controls.addRectCollider) {
-    //     addCollider = "rect";
-    // }
     if (keyCode === ESCAPE) {
-        //addCollider = "none";
         newCollider = {};
-        state.done();
+        //state.done();
     }
 
     if (keyCode == controls.toggleLevelEditing) {
@@ -163,21 +154,9 @@ function mousePressed() {
         }
     }
     
-    // if (addCollider == "grass") {
-    //     if (!newCollider.x1) {
-    //         newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
-    //     } else {
-    //         level.environment.grass.push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
-    //         newCollider = {};
-    //     }
-    // }
     if (state.is('game')) {
-        if (mouseY < 30 && mouseX <30) { // nts fricking lelijk
+        if (mouseY/scale < optionX+optionWidth && mouseX/scale < optionY+optionHeight) { // nts make variable
             state.pause();
-            
-            //addCollider = "none";
-            // newCollider = {};
-            // } else if (controls.fireWithMouse && gameState == 1) {
         } else if (controls.fireWithMouse) {
             player.fire();
         }
@@ -192,12 +171,6 @@ function mouseMoved() {
             newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
         } 
     }
-    // if (addCollider == "grass") {
-    //     if (newCollider.x1) {
-    //         newCollider.x2 = cap(mouseX/scale, newCollider.x1, referenceWidth);
-    //         newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
-    //     } 
-    // }
 
     if (addCollider.shape == "circle") {
         if (newCollider.x) {

@@ -449,18 +449,20 @@ class Tank {
 
 class Player extends Tank {
     update() {
-        if (keyIsDown(controls.left)){
-            this.rotate(-rotIncrease);
-        }
-        if (keyIsDown(controls.right)){
-            this.rotate(rotIncrease);
-        }
-        if (keyIsDown(controls.up)){
-            this.v += acceleration;
-        }
-        if (keyIsDown(controls.down)){
-            this.v -= acceleration;
-        }
+       // if (state.is('game')) { // remove if controlls are still enabled during paused screen
+            if (keyIsDown(controls.left)){
+                this.rotate(-rotIncrease);
+            }
+            if (keyIsDown(controls.right)){
+                this.rotate(rotIncrease);
+            }
+            if (keyIsDown(controls.up)){
+                this.v += acceleration;
+            }
+            if (keyIsDown(controls.down)){
+                this.v -= acceleration;
+            }
+        //} // remove id controls are still enabled during paused screen
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
 

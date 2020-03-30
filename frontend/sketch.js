@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // #region letiable declaration
 let isInit = false;
 // let gameState = 0; /*
@@ -9,9 +10,13 @@ let isInit = false;
 */
 
 state = new StateMachine({
+=======
+// #region variable declaration
+state = new StateMachine({ // where to put dis?
+>>>>>>> b6e79c2840c08a0b54414305c5c5e977a3cbb3cb
     init: 'preInit',
     transitions: [
-        {name: 'init', from: 'preInit', to: 'paused'},
+        {name: 'init', from: ['preInit', 'paused'], to: 'paused'},
         {name: 'pause', from: 'game', to: 'paused'},
         {name: 'play', from: 'paused', to: 'game'},
         {name: 'die', from: 'game', to: 'dead'},
@@ -19,18 +24,13 @@ state = new StateMachine({
         {name: 'done', from: 'paused', to: 'game'},
         {name: 'done', from: 'editingLevel', to: 'game'},
         {name: 'done', from: 'editingControls', to: 'paused'},
-        // {name: 'escape', from: 'game', to: 'paused'},
-        // {name: 'escape', from: 'paused', to: 'game'},
         {name: 'escape', from: '*', to: 'game'},
-        // {name: 'escape', from: 'editing', to: 'game'},
         {name: 'editLevel', from: 'game', to: 'editingLevel'},
-
         {name: 'editControls', from: 'paused', to: 'editingControls'},
     ],
     methods: {
         onPause: function() {console.log("pausing")},
         onPlay: function() {console.log("playing")},
-        // onDie: function() {console.log("dying")},
         onDie: function() {player.destroy()},
         onRespawn: function() {console.log("respawning")},
         onEscape: function() {console.log('escaping')},
@@ -132,7 +132,6 @@ let socket = io(socketLocation);
 socket.on('init', (data) => { // first connection
     initPlayers(data);
     isInit = true;
-    // gameState = 1; // go to main game loop
     state.init();
 });
 
@@ -236,16 +235,12 @@ function setup() {
     windowResized();
     rectMode(CENTER);
     bulletSprite = loadImage('src/image/bullet.png');
-    //backgroundImage = loadImage('src/image/streets.jpg');
-    //input = createInput();
-    //input.position(inputX,inputY);
     loadLevel(startingLevel);
 }
 
 function draw() {
-    //if(!isInit){return;}
     if (state.is('preInit')) {return;}
-    //if (gameState == 1) { // main game loop
+    
     if (state.is('game')) { // main game loop
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
@@ -255,13 +250,14 @@ function draw() {
         updatePlayer();
         updateEnemies();
         level.drawColliders();
-    // } else if (gameState == 2) { // options screen
-    } else if (state.is('paused') || state.is('editingControls')) { // options screen
+    }
+    
+    if (state.is('paused') || state.is('editingControls')) { // options screen
         background(backgroundColor);
         drawButtons();
-        //updateCurrentState();
-        //updatePlayer();
-        //newCollider.draw();
+        updateCurrentState();
+        updatePlayer();
+        updateEnemies()
     }
 
     if (state.is('editingLevel')) {
@@ -269,9 +265,7 @@ function draw() {
         level.drawGrass();
         updatePlayer();
         level.drawColliders();
-
     }
-    
 }
 //#endregion
 
@@ -404,6 +398,7 @@ function linearInterAngle(start, end, progress){
     return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
 
+// why you use arrownotation???? is it better? should the others be arrownotation?
 let rotatePointPoint = (point, origin, angle) => {
     return createVector(
         cos(angle) * (point.x - origin.x) - sin(angle) * (point.y - origin.y) + origin.x,
