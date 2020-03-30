@@ -411,8 +411,8 @@ function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
         // calc the point where the lines meet
         let intersectionX = x1 + (uA * (x2-x1));
         let intersectionY = y1 + (uA * (y2-y1));
-      }
-      if(calcIntersection){
+      //}
+      //if(calcIntersection){
         intersection = {
           "x":intersectionX,
           "y":intersectionY
@@ -517,6 +517,9 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     // get distance to closest point
     distX = closestX - cx;
     distY = closestY - cy;
+
+    ellipse(closestX*scale,closestY*scale,5);
+
     let distance = Math.sqrt((distX*distX) + (distY*distY));
 
     if (distance <= diameter/2) {
