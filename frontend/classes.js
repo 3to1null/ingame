@@ -13,7 +13,7 @@ class Level {
                 this.environment.colliders.push(new ColliderCircle(c.x,c.y,c.r));
             }
             if (c.x1) {
-                this.environment.colliders.push(new ColliderRect(c.x1,c.x1,c.x2,c.y2));
+                this.environment.colliders.push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
             }
         });
     }
