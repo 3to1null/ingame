@@ -1,19 +1,5 @@
-<<<<<<< HEAD
-// #region letiable declaration
-let isInit = false;
-// let gameState = 0; /*
-                /*0 = not inited
-                1 = in main game loop
-                2 = options menu
-                3 = Dead AF
-
-*/
-
-state = new StateMachine({
-=======
 // #region variable declaration
 state = new StateMachine({ // where to put dis?
->>>>>>> b6e79c2840c08a0b54414305c5c5e977a3cbb3cb
     init: 'preInit',
     transitions: [
         {name: 'init', from: ['preInit', 'paused'], to: 'paused'},
