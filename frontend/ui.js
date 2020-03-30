@@ -88,9 +88,6 @@ function drawButtons() { // nts double calculations
     rect(buttonX*scale, controlY*scale, controlWidth*scale, controlHeight*scale);
     drawControlText();
 
-    
-    
-
     // --- submit
     if (!submit) {
         submit = createButton('done');
@@ -122,7 +119,7 @@ function changeColor() {
 }
 
 function saveChanges() {
-    gameState = 1;
+    //gameState = 1;
     controls.changing = 0;
     controlText = "";
     controlTextOffset = 0;
@@ -134,4 +131,5 @@ function saveChanges() {
     submit = null;
     control.remove();
     control = null;
+    state.done();
 }

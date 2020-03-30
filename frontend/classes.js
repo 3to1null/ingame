@@ -25,24 +25,29 @@ class Level {
         rectMode(CORNERS);
         let patch;
         level.environment.grass.forEach(g => {
-            rect(g.x1*scale,g.y1*scale,g.x2*scale,g.y2*scale);
+            g.draw(grassColor);
         });
-        rect(newCollider.x1*scale, newCollider.y1*scale, newCollider.x2*scale, newCollider.y2*scale);
-        pop();
+
+        if (addCollider.shape == "rect" && addCollider.destination == "grass" && newCollider.x2) {
+            rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
+        }
+        if (addCollider.shape == "circle" && addCollider.destination == "grass" && newCollider.r) {
+            ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        }pop();
     }
-    
+
     drawColliders() {
         push();
         noStroke();
         fill(colliderColor);
         this.environment.colliders.forEach(c => {
-            c.draw();
+            c.draw(colliderColor);
         });
         rectMode(CORNERS);
-        if (addCollider == "rect" && newCollider.x2) {
+        if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
             rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
         }
-        if (addCollider == "circle" && newCollider.r) {
+        if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
             ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
         }
         pop();
@@ -62,9 +67,9 @@ class ColliderCircle {//extends Collider {
         this.r = r
     }
     
-    draw() {
+    draw(c) {
         push();
-        fill(colliderColor);
+        fill(c);
         ellipse(this.x*scale,this.y*scale,2*this.r*scale);
         pop();
     }
@@ -91,10 +96,10 @@ class ColliderRect { //extends Collider {
         this.y2 = y2
     }
 
-    draw() {
+    draw(c) {
         push();
         rectMode(CORNERS);
-        fill(colliderColor);
+        fill(c);
         rect(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
         pop();
     }
@@ -506,10 +511,10 @@ class Player extends Tank {
 
     destroy(){
         // Needs fancy animation
-        if(gameState !== 3){
-            gameState = 3;
+        // if(gameState !== 3){
+            // gameState = 3;
             location.reload();
-        }
+        // }
     }
 }
 

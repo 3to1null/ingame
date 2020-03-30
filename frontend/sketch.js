@@ -1,12 +1,43 @@
 // #region variable declaration
 let isInit = false;
-let gameState = 0; /*
-                0 = not inited
+// let gameState = 0; /*
+                /*0 = not inited
                 1 = in main game loop
                 2 = options menu
                 3 = Dead AF
 
 */
+
+state = new StateMachine({
+    init: 'preInit',
+    transitions: [
+        {name: 'init', from: 'preInit', to: 'paused'},
+        {name: 'pause', from: 'game', to: 'paused'},
+        {name: 'play', from: 'paused', to: 'game'},
+        {name: 'die', from: 'game', to: 'dead'},
+        {name: 'respawn', from: 'dead', to: 'game'},
+        {name: 'done', from: 'paused', to: 'game'},
+        {name: 'done', from: 'editingLevel', to: 'game'},
+        {name: 'done', from: 'editingControls', to: 'paused'},
+        // {name: 'escape', from: 'game', to: 'paused'},
+        // {name: 'escape', from: 'paused', to: 'game'},
+        {name: 'escape', from: '*', to: 'game'},
+        // {name: 'escape', from: 'editing', to: 'game'},
+        {name: 'editLevel', from: 'game', to: 'editingLevel'},
+
+        {name: 'editControls', from: 'paused', to: 'editingControls'},
+    ],
+    methods: {
+        onPause: function() {console.log("pausing")},
+        onPlay: function() {console.log("playing")},
+        // onDie: function() {console.log("dying")},
+        onDie: function() {player.destroy()},
+        onRespawn: function() {console.log("respawning")},
+        onEscape: function() {console.log('escaping')},
+        onEditLevel: function() {console.log('editing level')},
+        onEditControls: function() {console.log('editing controlls')},
+    }
+})
 
 // --- speed of things
 let upgradeDuration = 300; // in frames, so 300 is around 5 seconds
@@ -83,7 +114,7 @@ let backgroundImage;
 
 // --- level stuff
 let level;
-let addCollider = "none";
+let addCollider = {'destination': "grass", "shape": "rect"};
 let newCollider = {};
 
 // #endregion
@@ -101,7 +132,8 @@ var socket = io(socketLocation);
 socket.on('init', (data) => { // first connection
     initPlayers(data);
     isInit = true;
-    gameState = 1; // go to main game loop
+    // gameState = 1; // go to main game loop
+    state.init();
 });
 
 /*socket.on('new', (data) => { // new player // obsolete
@@ -198,10 +230,6 @@ function removePlayer(id) {
 
 //#region main game code
 
-function preLoad() {
-    
-}
-
 function setup() {
     initColors();
     createCanvas(0,0).parent('canvasholder');
@@ -215,8 +243,10 @@ function setup() {
 }
 
 function draw() {
-    if(!isInit){return;}
-    if (gameState == 1) { // main game loop
+    //if(!isInit){return;}
+    if (state.is('preInit')) {return;}
+    //if (gameState == 1) { // main game loop
+    if (state.is('game')) { // main game loop
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
         level.drawGrass();
@@ -225,18 +255,27 @@ function draw() {
         updatePlayer();
         updateEnemies();
         level.drawColliders();
-    } else if (gameState == 2) { // options screen
+    // } else if (gameState == 2) { // options screen
+    } else if (state.is('paused') || state.is('editingControls')) { // options screen
         background(backgroundColor);
         drawButtons();
         //updateCurrentState();
         //updatePlayer();
         //newCollider.draw();
     }
+
+    if (state.is('editingLevel')) {
+        image(backgroundImage, 0, 0, width, height);
+        level.drawGrass();
+        updatePlayer();
+        level.drawColliders();
+
+    }
+    
 }
 //#endregion
 
 //#region functions
-
 
 function updateCurrentState(){
     if(bufferStates.length < 2){
