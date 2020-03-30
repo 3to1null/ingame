@@ -79,6 +79,26 @@ class ColliderCircle {//extends Collider {
     }
 
     collideWithTank(tankVerticis, tankCenter){
+        // go through each of the vertices, plus the next vertex in the list
+        let next = 0;
+        for (let current=0; current<tankVerticis.length; current++) {
+            
+            // get next vertex in list if we've hit the end, wrap around to 0
+            next = current+1;
+            if (next == tankVerticis.length) next = 0;
+            
+            // get the PVectors at our current position this makes our if statement a little cleaner
+            let vc = tankVerticis[current];
+            let vn = tankVerticis[next]; 
+            
+            // check for collision between the circle and a line formed between the two tankVerticis
+            let collision = collideLineCircle(vc.x,vc.y, vn.x,vn.y, this.x, this.y, this.r*2);
+            if (collision){
+                console.log('collison!!!') 
+                return true;
+              }
+        }
+        // otherwise, after all that, return false
         return false;
     }
 

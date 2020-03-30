@@ -1,4 +1,4 @@
-// #region variable declaration
+// #region letiable declaration
 let isInit = false;
 // let gameState = 0; /*
                 /*0 = not inited
@@ -127,7 +127,7 @@ let currentState = {
 };
 
 // --- make connection
-var socket = io(socketLocation);
+let socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
     initPlayers(data);
@@ -177,7 +177,7 @@ socket.on('delete', (data) => {
 
 function initPlayers(data) {
     console.debug("init players");
-    for (var id in data.state.players) {
+    for (let id in data.state.players) {
         if (id === socket.id) {
             let colorKeys = Object.keys(colors);
             let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
@@ -215,7 +215,7 @@ function addPlayer(id, newPlayer) {
 }
 
 function removePlayer(id) {
-    for (var i=0; i<enemies.length; i++) {
+    for (let i=0; i<enemies.length; i++) {
         if (enemies[i].id == id) {
             enemies.splice(i,1);
             console.log(id + " left the game");
@@ -417,19 +417,19 @@ function mod(n, m) {
 
 function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
 
-    var intersection;
+    let intersection;
   
     // calculate the distance to intersection point
-    var uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
-    var uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    let uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    let uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
   
     // if uA and uB are between 0-1, lines are colliding
     if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
   
       if(calcIntersection){
         // calc the point where the lines meet
-        var intersectionX = x1 + (uA * (x2-x1));
-        var intersectionY = y1 + (uA * (y2-y1));
+        let intersectionX = x1 + (uA * (x2-x1));
+        let intersectionY = y1 + (uA * (y2-y1));
       }
       if(calcIntersection){
         intersection = {
@@ -454,7 +454,7 @@ function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
 function collideLineRect(x1, y1, x2, y2, rx, ry, rw, rh, calcIntersection) {
 
     // check if the line has hit any of the rectangle's sides. uses the collideLineLine function above
-    var left, right, top, bottom, intersection;
+    let left, right, top, bottom, intersection;
   
     if(calcIntersection){
        left =   this.collideLineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh,true);
@@ -483,5 +483,64 @@ function collideLineRect(x1, y1, x2, y2, rx, ry, rw, rh, calcIntersection) {
       return true;
     }
     return false;
-  }
+}
+
+function collidePointCircle(x, y, cx, cy, d) {
+    if( dist(x,y,cx,cy) <= d/2 ){
+      return true;
+    }
+    return false;
+};
+
+function collidePointLine(px,py,x1,y1,x2,y2){
+    let buffer = 0.1
+    let d1 = dist(px,py, x1,y1);
+    let d2 = dist(px,py, x2,y2);
+    
+    // get the length of the line
+    let lineLen = dist(x1,y1, x2,y2);
+    
+    // if the two distances are equal to the line's length, the point is on the line!
+    // note we use the buffer here to give a range, rather than one #
+    if (d1+d2 >= lineLen-buffer && d1+d2 <= lineLen+buffer) {
+      return true;
+    }
+    return false;
+}
+
+
+function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
+    // is either end INSIDE the circle?
+    // if so, return true immediately
+    let inside1 = collidePointCircle(x1,y1, cx,cy,diameter);
+    let inside2 = collidePointCircle(x2,y2, cx,cy,diameter);
+    if (inside1 || inside2) return true;
+
+    // get length of the line
+    let distX = x1 - x2;
+    let distY = y1 - y2;
+    let len = Math.sqrt( (distX*distX) + (distY*distY) );
+
+    // get dot product of the line and circle
+    let dot = ( ((cx-x1)*(x2-x1)) + ((cy-y1)*(y2-y1)) ) / Math.pow(len,2);
+
+    // find the closest point on the line
+    let closestX = x1 + (dot * (x2-x1));
+    let closestY = y1 + (dot * (y2-y1));
+
+    // is this point actually on the line segment?
+    // if so keep going, but if not, return false
+    let onSegment = collidePointLine(closestX,closestY,x1,y1,x2,y2);
+    if (!onSegment) return false;
+
+    // get distance to closest point
+    distX = closestX - cx;
+    distY = closestY - cy;
+    let distance = Math.sqrt((distX*distX) + (distY*distY));
+
+    if (distance <= diameter/2) {
+      return true;
+    }
+    return false;
+}
 //#endregion
