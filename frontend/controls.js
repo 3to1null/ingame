@@ -1,29 +1,26 @@
 // --- controls for things
-let leftKey = 65;
-let rightKey = 68;
-let upKey = 87;
-let downKey = 83;
-let fireKey;
-
 let controlText;
 
 let WAITINGONINPUT = false;
 
 let controls = {
     'changing': 0, // none, left, right, up, down, fire
-    'left': leftKey,
-    'right': rightKey,
-    'up': upKey,
-    'down': downKey,
+    'left': 65,
+    'right': 68,
+    'up': 87,
+    'down': 83,
     'fireWithMouse': true,
-    'fire': fireKey,
-    'addCircleCollider': 67,
-    'addRectCollider': 82,
+    //'fire': fireKey,
+    'toggleColliderShape': 86, // v
+    'toggleColliderDestination': 67, // c
+    'toggleLevelEditing': 69, // LMAO // e 
+    //'addGrassPatch': 71 // g
     //'escapeCollider': ESCAPE
 }
 
 
 function changeControls() {
+    state.editControls();
     if (!controls.changing) {
         controls.changing = 1;
         controlText = "listening for left input..."
@@ -51,21 +48,40 @@ function changeFire () {
 
 function keyPressed() {
     //#region changing controls DIT IS HECKA LELIJK
-    //let textBox = document.getElementById("controls");
     if (controls.changing && keyCode == ESCAPE) {
         controls.changing = 0;
         controlText = "";
         controlTextOffset = 0;
     }
 
-    if(keyCode == controls.addCircleCollider) {
-        addCollider = "circle";
-    }
-    if (keyCode == controls.addRectCollider) {
-        addCollider = "rect";
-    }
     if (keyCode === ESCAPE) {
-        addCollider = "none";
+        newCollider = {};
+        //state.done();
+    }
+
+    if (keyCode == controls.toggleLevelEditing) {
+        if (state.is('editingLevel')) {
+            console.log(JSON.stringify(level.environment));
+            newCollider = {};
+            state.done();
+        } else {
+            state.editLevel();
+        }
+    }
+
+    if (keyCode == controls.toggleColliderDestination) {
+        // state.editLevel();
+        addCollider.destination = (addCollider.destination === "grass") ? "colliders" : "grass";
+    }
+    
+    if (keyCode == controls.toggleColliderShape) {
+        // state.editLevel();
+        if (addCollider.shape == "rect") {
+            newCollider = {'x': newCollider.x1, 'y': newCollider.y1, 'r': dist(newCollider.x1,newCollider.y1,mouseX/scale,mouseY/scale)};
+        } else {
+            newCollider = {'x1': newCollider.x, 'y1': newCollider.y, 'x2': mouseX/scale, 'y2': mouseY/scale}
+        }
+        addCollider.shape = (addCollider.shape === "rect") ? "circle" : "rect";
     }
 
     switch(controls.changing) {
@@ -96,6 +112,7 @@ function keyPressed() {
                 controlTextOffset = 0;
                 //textBox.style.visibility = "invisible";
                 controls.changing = 0;
+                state.done();
             } else {
                 controlText = "listening for fire input...";
                 controls.changing++;
@@ -117,42 +134,45 @@ function keyPressed() {
 
 
 function mousePressed() {
-    if (addCollider == "rect" ) {
-        if (!newCollider.x1) {
-            //newCollider = new ColliderRect(newCollider.x1,newCollider.y1, mouseX/scale, mouseY/scale);
-            newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
-        } else {
-            level.environment.colliders.push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
-            newCollider = {};
+    if(state.is('editingLevel')) {
+        if (addCollider.shape == "rect" ) {
+            if (!newCollider.x1) {
+                newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
+            } else {
+                level.environment[addCollider.destination].push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
+                newCollider = {};
+            }
+        }
+        
+        if (addCollider.shape == "circle") {
+            if (!newCollider.x) {
+                newCollider = {'x': mouseX/scale, 'y': mouseY/scale, 'r': 0};
+            } else {
+                level.environment[addCollider.destination].push(new ColliderCircle(newCollider.x,newCollider.y,newCollider.r));
+                newCollider = {};
+            } 
         }
     }
     
-    if (addCollider == "circle") {
-        if (!newCollider.x) {
-            newCollider = {'x': mouseX/scale, 'y': mouseY/scale, 'r': 0};
-        } else {
-            level.environment.colliders.push(new ColliderCircle(newCollider.x,newCollider.y,newCollider.r));
-            newCollider = {};
-        } 
-    }
-    
-    if (mouseY < 30 && mouseX <30) { // nts fricking lelijk
-        gameState = 2;
-    } else if (controls.fireWithMouse && gameState == 1) {
-        player.fire();
+    if (state.is('game')) {
+        if (mouseY/scale < optionX+optionWidth && mouseX/scale < optionY+optionHeight) { // nts make variable
+            state.pause();
+        } else if (controls.fireWithMouse) {
+            player.fire();
+        }
     }
 }
 
 
 function mouseMoved() {
-    if (addCollider == "rect") {
+    if (addCollider.shape == "rect") {
         if (newCollider.x1) {
-            newCollider.x2 = mouseX/scale;
-            newCollider.y2 = mouseY/scale;
+            newCollider.x2 = cap(mouseX/scale, newCollider.x1, referenceWidth);
+            newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
         } 
     }
 
-    if (addCollider == "circle") {
+    if (addCollider.shape == "circle") {
         if (newCollider.x) {
             newCollider.r = dist(newCollider.x,newCollider.y,mouseX/scale,mouseY/scale);
         }

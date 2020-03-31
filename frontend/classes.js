@@ -2,9 +2,20 @@
 
 class Level {
     constructor(data) {
-        this.backgroundImage = data.bgi;
+        this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
-        this.environment = data.environment;
+        this.environment = {'grass': [], 'colliders': []};
+        data.environment.grass.forEach(g => {
+            this.environment.grass.push(new ColliderRect(g.x1,g.y1,g.x2,g.y2));
+        });
+        data.environment.colliders.forEach(c => {
+            if (c.r) {
+                this.environment.colliders.push(new ColliderCircle(c.x,c.y,c.r));
+            }
+            if (c.x1) {
+                this.environment.colliders.push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
+            }
+        });
     }
 
     drawGrass() {
@@ -13,25 +24,30 @@ class Level {
         fill(grassColor);
         rectMode(CORNERS);
         let patch;
-        for(patch of this.environment.grass) {
-            //console.log(patch);
-            rect(patch.x1*scale,patch.y1*scale,patch.x2*scale,patch.y2*scale);
+        level.environment.grass.forEach(g => {
+            g.draw(grassColor);
+        });
+
+        if (addCollider.shape == "rect" && addCollider.destination == "grass" && newCollider.x2) {
+            rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
         }
-        rect(newPatch.x1*scale, newPatch.y1*scale, newPatch.x2*scale, newPatch.y2*scale);
-        pop();
+        if (addCollider.shape == "circle" && addCollider.destination == "grass" && newCollider.r) {
+            ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        }pop();
     }
-    
+
     drawColliders() {
         push();
         noStroke();
+        fill(colliderColor);
         this.environment.colliders.forEach(c => {
-            c.draw();
+            c.draw(colliderColor);
         });
         rectMode(CORNERS);
-        if (addCollider == "rect" && newCollider.x2) {
+        if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
             rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
         }
-        if (addCollider == "circle" && newCollider.r) {
+        if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
             ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
         }
         pop();
@@ -51,12 +67,39 @@ class ColliderCircle {//extends Collider {
         this.r = r
     }
     
-    draw() {
+    draw(c) {
+        push();
+        fill(c);
         ellipse(this.x*scale,this.y*scale,2*this.r*scale);
+        pop();
     }
 
     collideWithPoint(x,y) {
         return dist(this.x, this.y, x, y)<this.r;
+    }
+
+    collideWithTank(tankVerticis, tankCenter){
+        // go through each of the vertices, plus the next vertex in the list
+        let next = 0;
+        for (let current=0; current<tankVerticis.length; current++) {
+            
+            // get next vertex in list if we've hit the end, wrap around to 0
+            next = current+1;
+            if (next == tankVerticis.length) next = 0;
+            
+            // get the PVectors at our current position this makes our if statement a little cleaner
+            let vc = tankVerticis[current];
+            let vn = tankVerticis[next]; 
+            
+            // check for collision between the circle and a line formed between the two tankVerticis
+            let collision = collideLineCircle(vc.x,vc.y, vn.x,vn.y, this.x, this.y, this.r*2);
+            if (collision){
+                console.log('collison!!!') 
+                return true;
+              }
+        }
+        // otherwise, after all that, return false
+        return false;
     }
 
     collissionPoint(x,y) {
@@ -73,15 +116,74 @@ class ColliderRect { //extends Collider {
         this.y2 = y2
     }
 
-    draw() {
+    draw(c) {
         push();
         rectMode(CORNERS);
+        fill(c);
         rect(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
         pop();
     }
 
     collideWithPoint(x,y) {
         return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+    }
+
+    collideWithTank(tankVerticis, tankCenter){
+        let next = 0;
+        for (let current=0; current<tankVerticis.length; current++) {
+            // get next vertex in list if we've hit the end, wrap around to 0
+            next = current+1;
+            if (next == tankVerticis.length) {
+                next = 0;
+            }
+          
+            let vc = tankVerticis[current];
+            let vn = tankVerticis[next];
+          
+            let collision = collideLineRect(vc.x,vc.y,vn.x,vn.y, this.x1,this.y1,this.x2-this.x1,this.y2-this.y1);
+            if (collision) {
+                // Which vector should handle newpos for which collision?
+                let orderedVectors = {'bottom' : vc, 'right' : vc, 'left' : vc, 'top' : vc}
+                for (let current=0; current<tankVerticis.length; current++) {
+                    let vect = tankVerticis[current];
+                    if(!this.collideWithPoint(vect.x, vect.y)){
+                        continue;
+                    }
+                    if(vect['x'] > orderedVectors.left.x){
+                        orderedVectors.left = vect;
+                    }
+                    if(vect['x'] < orderedVectors.right.x){
+                        orderedVectors.right = vect;
+                    }
+                    if(vect['y'] > orderedVectors.top.y){
+                        orderedVectors.top = vect;
+                    }
+                    if(vect['y'] < orderedVectors.bottom.y){
+                        orderedVectors.bottom = vect;
+                    }
+                }
+
+                // calc intersection  
+                collision = collideLineRect(vc.x,vc.y,vn.x,vn.y, this.x1,this.y1,this.x2-this.x1,this.y2-this.y1, true);
+                let newPos = {'x': tankCenter.x, 'y': tankCenter.y}
+                if(collision.left.x){
+                    newPos['x'] = newPos['x'] - (orderedVectors.left.x - collision.left.x);
+                }
+                if(collision.right.x){
+                    newPos['x'] = newPos['x'] + (collision.right.x - orderedVectors.right.x);
+                }
+                if(collision.top.y){
+                    newPos['y'] = newPos['y'] - (orderedVectors.top.y - collision.top.y);
+                }
+                if(collision.bottom.y){
+                    newPos['y'] = newPos['y'] + (collision.bottom.y - orderedVectors.bottom.y);
+                }
+                return newPos;
+            }
+            
+        }
+        
+        return false;
     }
 
     collissionPoint(x,y) {
@@ -293,18 +395,9 @@ class Tank {
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
         this.y = cap(this.y,0,referenceHeight);
-
-        // --- collisions:
-        level.environment.colliders.forEach(c => {
-            if (c.collideWithPoint(this.x, this.y)) {
-                let newPos = c.collissionPoint(this.x, this.y);
-                this.x = newPos.x;
-                this.y = newPos.y;
-            }
-        });
     }
 
-    isInWall() {
+    /*isInWall() {
         let p;
         for(p of level.environment.grass) {
             if (p.x1 < this.x && p.x2 > this.x && p.y1 < this.y && p.y2 > this.y) {
@@ -327,28 +420,11 @@ class Tank {
                         alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
                         break;
                 }
-                
-                /*switch(floor(facing)) {
-                    case 0: // facing right
-                        this.x = patch.x1;
-                        break;
-                    case 1: // facing down
-                        this.y = patch.y1;
-                        break;
-                    case 2: // facing left
-                        this.x = patch.x2;
-                        break;
-                    case 3: // facing up
-                        this.y = patch.y2;
-                        break;
-                    default:
-                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
-                }*/
                 return true;
             } 
         }
         return false;
-    }
+    }*/
 
     rotate(dr) {
         this.r += dr;
@@ -373,36 +449,57 @@ class Tank {
 
 class Player extends Tank {
     update() {
-        if (keyIsDown(controls.left)){
-            this.rotate(-rotIncrease);
-        }
-        if (keyIsDown(controls.right)){
-            this.rotate(rotIncrease);
-        }
-        if (keyIsDown(controls.up)){
-            this.v += acceleration;
-        }
-        if (keyIsDown(controls.down)){
-            this.v -= acceleration;
-        }
+       // if (state.is('game')) { // remove if controlls are still enabled during paused screen
+            if (keyIsDown(controls.left)){
+                this.rotate(-rotIncrease);
+            }
+            if (keyIsDown(controls.right)){
+                this.rotate(rotIncrease);
+            }
+            if (keyIsDown(controls.up)){
+                this.v += acceleration;
+            }
+            if (keyIsDown(controls.down)){
+                this.v -= acceleration;
+            }
+        //} // remove id controls are still enabled during paused screen
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
 
-        this.updateBullets();
         super.update(); // Tank.update() function
-        
-        /*socket.emit('update_player', { // maybe change this to emit('update_player', this); ?
-            'x': this.x,
-            'y': this.y,
-            'r': this.r,
-            'v': this.v,
-            'tr': this.tr,
-            'name': this.name,
-            'c': this.c,
-        });*/
+
+        // --- collisions:
+        let tankVerticis = [
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+        ]
+        // DEBUG hitbox
+        push();
+        stroke(colors['white'])
+        point(tankVerticis[0].x * scale, tankVerticis[0].y * scale);
+        point(tankVerticis[1].x * scale, tankVerticis[1].y * scale);
+        point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
+        point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
+        pop();
+        level.environment.colliders.forEach(c => {
+            // if (c.collideWithPoint(this.x, this.y)) {
+            //     let newPos = c.collissionPoint(this.x, this.y);
+            //     this.x = newPos.x;
+            //     this.y = newPos.y;
+            // }
+            let tankLevelCol = c.collideWithTank(tankVerticis, {'x': this.x, 'y': this.y});
+            
+            if (tankLevelCol){
+                this.x = tankLevelCol.x;
+                this.y = tankLevelCol.y;
+            }
+        });
+
+        this.updateBullets();
 
         socket.emit('update_player', this); // this works apearantly?
-        // console.log(this);
 
     }
 
@@ -436,10 +533,10 @@ class Player extends Tank {
 
     destroy(){
         // Needs fancy animation
-        if(gameState !== 3){
-            gameState = 3;
+        // if(gameState !== 3){
+            // gameState = 3;
             location.reload();
-        }
+        // }
     }
 }
 

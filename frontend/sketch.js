@@ -1,12 +1,29 @@
 // #region variable declaration
-let isInit = false;
-let gameState = 0; /*
-                0 = not inited
-                1 = in main game loop
-                2 = options menu
-                3 = Dead AF
-
-*/
+state = new StateMachine({ // where to put dis?
+    init: 'preInit',
+    transitions: [
+        {name: 'init', from: ['preInit', 'paused'], to: 'paused'},
+        {name: 'pause', from: 'game', to: 'paused'},
+        {name: 'play', from: 'paused', to: 'game'},
+        {name: 'die', from: 'game', to: 'dead'},
+        {name: 'respawn', from: 'dead', to: 'game'},
+        {name: 'done', from: 'paused', to: 'game'},
+        {name: 'done', from: 'editingLevel', to: 'game'},
+        {name: 'done', from: 'editingControls', to: 'paused'},
+        {name: 'escape', from: '*', to: 'game'},
+        {name: 'editLevel', from: 'game', to: 'editingLevel'},
+        {name: 'editControls', from: 'paused', to: 'editingControls'},
+    ],
+    methods: {
+        onPause: function() {console.log("pausing")},
+        onPlay: function() {console.log("playing")},
+        onDie: function() {player.destroy()},
+        onRespawn: function() {console.log("respawning")},
+        onEscape: function() {console.log('escaping')},
+        onEditLevel: function() {console.log('editing level')},
+        onEditControls: function() {console.log('editing controlls')},
+    }
+})
 
 // --- speed of things
 let upgradeDuration = 300; // in frames, so 300 is around 5 seconds
@@ -38,6 +55,7 @@ let nameOffset = 25;
 
 
 // --- begin of things
+let startingLevel = 0;
 let tankBeginX = 0;
 let tankBeginY = 0;
 let tankBeginR = 0;
@@ -52,6 +70,7 @@ let hpRedLine = 0.25;
 let UIBackgroundColor;
 let buttonColor;
 let grassColor;
+let colliderColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -65,6 +84,7 @@ function initColors() {
     };
     backgroundColor = color('#222');
     grassColor = colors.green;
+    colliderColor = colors.red;
     //backgroundColor = colors.white;
     hpBackgroundColor = colors.red;
     hpColor = colors.green;
@@ -79,9 +99,8 @@ let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
-let startingLevel = 0;
-let level = new Level(levels[startingLevel]);
-let addCollider = "none";
+let level;
+let addCollider = {'destination': "grass", "shape": "rect"};
 let newCollider = {};
 
 // #endregion
@@ -94,12 +113,12 @@ let currentState = {
 };
 
 // --- make connection
-var socket = io(socketLocation);
+let socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
     initPlayers(data);
     isInit = true;
-    gameState = 1; // go to main game loop
+    state.init();
 });
 
 /*socket.on('new', (data) => { // new player // obsolete
@@ -143,7 +162,7 @@ socket.on('delete', (data) => {
 
 function initPlayers(data) {
     console.debug("init players");
-    for (var id in data.state.players) {
+    for (let id in data.state.players) {
         if (id === socket.id) {
             let colorKeys = Object.keys(colors);
             let randomColor = colorKeys[colorKeys.length * Math.random() << 0];
@@ -181,7 +200,7 @@ function addPlayer(id, newPlayer) {
 }
 
 function removePlayer(id) {
-    for (var i=0; i<enemies.length; i++) {
+    for (let i=0; i<enemies.length; i++) {
         if (enemies[i].id == id) {
             enemies.splice(i,1);
             console.log(id + " left the game");
@@ -196,45 +215,47 @@ function removePlayer(id) {
 
 //#region main game code
 
-function preLoad() {
-    
-}
-
 function setup() {
+    initColors();
     createCanvas(0,0).parent('canvasholder');
     windowResized();
     rectMode(CENTER);
-    initColors();
     bulletSprite = loadImage('src/image/bullet.png');
-    backgroundImage = loadImage('src/image/streets.jpg');
-    //input = createInput();
-    //input.position(inputX,inputY);
-
+    loadLevel(startingLevel);
 }
 
 function draw() {
-    if(!isInit){return;}
-    if (gameState == 1) { // main game loop
+    if (state.is('preInit')) {return;}
+    
+    if (state.is('game')) { // main game loop
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
+        level.drawGrass();
         drawUI();
         updateCurrentState();
         updatePlayer();
         updateEnemies();
-        //level.drawGrass();
         level.drawColliders();
-    } else if (gameState == 2) { // options screen
+    }
+    
+    if (state.is('paused') || state.is('editingControls')) { // options screen
         background(backgroundColor);
         drawButtons();
-        //updateCurrentState();
-        //updatePlayer();
-        //newCollider.draw();
+        updateCurrentState();
+        updatePlayer();
+        updateEnemies()
+    }
+
+    if (state.is('editingLevel')) {
+        image(backgroundImage, 0, 0, width, height);
+        level.drawGrass();
+        updatePlayer();
+        level.drawColliders();
     }
 }
 //#endregion
 
 //#region functions
-
 
 function updateCurrentState(){
     if(bufferStates.length < 2){
@@ -330,6 +351,7 @@ function debugPlayers() {
 function loadLevel(l) {
     level = new Level(levels[l]);
     backgroundImage = loadImage(level['backgroundImage']);
+    console.log(level);
     
 }
 
@@ -362,6 +384,7 @@ function linearInterAngle(start, end, progress){
     return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
 
+// why you use arrownotation???? is it better? should the others be arrownotation?
 let rotatePointPoint = (point, origin, angle) => {
     return createVector(
         cos(angle) * (point.x - origin.x) - sin(angle) * (point.y - origin.y) + origin.x,
@@ -373,4 +396,135 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
+
+    let intersection;
+  
+    // calculate the distance to intersection point
+    let uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+    let uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
+  
+    // if uA and uB are between 0-1, lines are colliding
+    if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+  
+      if(calcIntersection){
+        // calc the point where the lines meet
+        let intersectionX = x1 + (uA * (x2-x1));
+        let intersectionY = y1 + (uA * (y2-y1));
+      //}
+      //if(calcIntersection){
+        intersection = {
+          "x":intersectionX,
+          "y":intersectionY
+        }
+        return intersection;
+      }else{
+        return true;
+      }
+    }
+    if(calcIntersection){
+      intersection = {
+        "x":false,
+        "y":false
+      }
+      return intersection;
+    }
+    return false;
+  }
+
+function collideLineRect(x1, y1, x2, y2, rx, ry, rw, rh, calcIntersection) {
+
+    // check if the line has hit any of the rectangle's sides. uses the collideLineLine function above
+    let left, right, top, bottom, intersection;
+  
+    if(calcIntersection){
+       left =   this.collideLineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh,true);
+       right =  this.collideLineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh,true);
+       top =    this.collideLineLine(x1,y1,x2,y2, rx,ry, rx+rw,ry,true);
+       bottom = this.collideLineLine(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh,true);
+       intersection = {
+          "left" : left,
+          "right" : right,
+          "top" : top,
+          "bottom" : bottom
+      }
+    }else{
+      //return booleans
+       left =   this.collideLineLine(x1,y1,x2,y2, rx,ry,rx, ry+rh);
+       right =  this.collideLineLine(x1,y1,x2,y2, rx+rw,ry, rx+rw,ry+rh);
+       top =    this.collideLineLine(x1,y1,x2,y2, rx,ry, rx+rw,ry);
+       bottom = this.collideLineLine(x1,y1,x2,y2, rx,ry+rh, rx+rw,ry+rh);
+    }
+  
+    // if ANY of the above are true, the line has hit the rectangle
+    if (left || right || top || bottom) {
+      if(calcIntersection){
+        return intersection;
+      }
+      return true;
+    }
+    return false;
+}
+
+function collidePointCircle(x, y, cx, cy, d) {
+    if( dist(x,y,cx,cy) <= d/2 ){
+      return true;
+    }
+    return false;
+};
+
+function collidePointLine(px,py,x1,y1,x2,y2){
+    let buffer = 0.1
+    let d1 = dist(px,py, x1,y1);
+    let d2 = dist(px,py, x2,y2);
+    
+    // get the length of the line
+    let lineLen = dist(x1,y1, x2,y2);
+    
+    // if the two distances are equal to the line's length, the point is on the line!
+    // note we use the buffer here to give a range, rather than one #
+    if (d1+d2 >= lineLen-buffer && d1+d2 <= lineLen+buffer) {
+      return true;
+    }
+    return false;
+}
+
+
+function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
+    // is either end INSIDE the circle?
+    // if so, return true immediately
+    let inside1 = collidePointCircle(x1,y1, cx,cy,diameter);
+    let inside2 = collidePointCircle(x2,y2, cx,cy,diameter);
+    if (inside1 || inside2) return true;
+
+    // get length of the line
+    let distX = x1 - x2;
+    let distY = y1 - y2;
+    let len = Math.sqrt( (distX*distX) + (distY*distY) );
+
+    // get dot product of the line and circle
+    let dot = ( ((cx-x1)*(x2-x1)) + ((cy-y1)*(y2-y1)) ) / Math.pow(len,2);
+
+    // find the closest point on the line
+    let closestX = x1 + (dot * (x2-x1));
+    let closestY = y1 + (dot * (y2-y1));
+
+    // is this point actually on the line segment?
+    // if so keep going, but if not, return false
+    let onSegment = collidePointLine(closestX,closestY,x1,y1,x2,y2);
+    if (!onSegment) return false;
+
+    // get distance to closest point
+    distX = closestX - cx;
+    distY = closestY - cy;
+
+    ellipse(closestX*scale,closestY*scale,5);
+
+    let distance = Math.sqrt((distX*distX) + (distY*distY));
+
+    if (distance <= diameter/2) {
+      return true;
+    }
+    return false;
+}
 //#endregion
