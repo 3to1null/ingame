@@ -54,6 +54,64 @@ class Level {
     }
 }
 
+class Track {
+    constructor(firstX,firstY,firstR) {
+        this.ended = false;
+        this.points = [{'x':firstX,'y':firstY,'r':firstR}];
+    }
+
+    draw() {
+        push();
+        for (let i = 0; i < this.points.length - 1; i++) {
+            const cp = this.points[i];
+            const np = this.points[i+1];
+            // line(cp.x*scale, cp.y*scale, np.x*scale, np.y*scale);
+            push();
+            fill(trackColor);
+            noStroke();
+            translate(cp.x*scale,cp.y*scale);
+            rotate(cp.r);
+            rect(0, 0, trackWidth*scale, trackHeight*scale);
+            pop();
+            // stroke(colors.red);
+            // point(cp.x*scale,cp.y*scale); // for debugging
+            // stroke(trackColor);
+        }
+        pop();
+    }
+
+    addPoint(x,y,r) {
+        let pl = this.points.length;
+        let np = {'x':x,'y':y,'r':r};
+        
+        if (pl < 3) {
+            this.points.push(np);
+        } else if (dist(this.points[pl-2].x, this.points[pl-2].y, np.x, np.y) < maxTrackSegmentLength) {
+            // not long enough to be a new point
+            this.points[pl-1] = np;
+        } else {
+            this.points.push(np);
+        }
+    }
+
+    end(x,y,r) {
+        this.addPoint(x,y,r);
+        this.ended = true;
+        // this.cleanup();
+    }
+
+    cleanup(lim = this.points.length-3) {
+        for (let i = lim; i >= 0; i--) {
+            const fp = this.points[i];
+            const mp = this.points[i+1];
+            const lp = this.points[i+2];
+            if (collidePointLine(mp.x,mp.y,fp.x,fp.y,lp.x,lp.y)) {
+                this.points.splice(i+1, 1);
+            }
+        }
+    }
+}
+
 class Collider {
     constructor() {
         
@@ -80,6 +138,7 @@ class ColliderCircle {//extends Collider {
 
     collideWithTank(tankVerticis, tankCenter){
         let newPos = tankCenter;
+        let CHANGED = false;
         // go through each of the vertices in the list
         // for (let current=0; current<tankVerticis.length; current++) {
         for (let current=0; current<tankVerticis.length; current++) {
@@ -92,6 +151,7 @@ class ColliderCircle {//extends Collider {
                 // return {'x': tankCenter.x - dx, 'y': tankCenter.y - dy};
                 newPos.x = tankCenter.x + dx;
                 newPos.y = tankCenter.y + dy;
+                CHANGED = true;
             }
             /*
             // get next vertex in list if we've hit the end, wrap around to 0
@@ -111,8 +171,10 @@ class ColliderCircle {//extends Collider {
               }*/
         }
         // otherwise, after all that, return false
-        
-            return newPos
+       if (CHANGED) {
+            return newPos;
+        }
+        return false;
         
     }
 
@@ -239,7 +301,8 @@ class Bullet {
     checkCollisions(){
         let colCheck = (enemy) => {
             let enemyTankVerticis = [];
-            let o = {'x': enemy.x, 'y': enemy.y}
+            // let o = {'x': enemy.x, 'y': enemy.y}
+            let o = enemy.getPos();
             enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
             enemyTankVerticis[1] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
             enemyTankVerticis[2] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
@@ -319,19 +382,37 @@ class Tank {
         this.v = v;
 
         this.tr = tr;
-        this.hp = 100;
+        this.hp = startHp;
         this.name = c;
         this.c = c;
 
         this.needsCleanup = false;
         this.isHit = false;
+        // this.wasOnGrass = false;
+        this.wasOnGrass = [0,0,0,0];
+        // this.onGrass = false;
+        this.onGrass = [0,0,0,0];
 
         this.bullets = {};
+        this.tracks = [[],[],[],[]];
         this.upgrades = {
             'superSpeed': 0,
             'machinegun': 0,
             'juggernaut': 0 
         };
+    }
+
+    getVerticis() {
+        return [ 
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
+        ];
+    }
+
+    getPos() {
+        return {'x': this.x, 'y': this.y};
     }
 
     upgrade(upgrade) {
@@ -397,7 +478,22 @@ class Tank {
     update() {
         if(this.hp <= 0){
             this.destroy();
+            state.die();
         }
+
+        // --- grass
+        // this.wasOnGrass = this.onGrass;
+        this.wasOnGrass = this.onGrass;
+        // this.onGrass = false;
+        this.onGrass = [0,0,0,0];
+        level.environment.grass.forEach(g => {
+            this.getVerticis().forEach((v, i) => {
+                if (g.collideWithPoint(v.x,v.y)) {
+                    // this.onGrass = true
+                    this.onGrass[i] = true
+                }
+            });
+        });
 
         let speedCap = maxV;
         if (this.upgrades.superSpeed) {
@@ -411,43 +507,83 @@ class Tank {
         this.y = cap(this.y,0,referenceHeight);
     }
 
-    /*isInWall() {
-        let p;
-        for(p of level.environment.grass) {
-            if (p.x1 < this.x && p.x2 > this.x && p.y1 < this.y && p.y2 > this.y) {
-                //let facing = mod(this.r/PI*2+ 0.5,4); // 0-1 = right, 1-2 = down etc.
-                let minD = min(this.x-p.x1,this.y-p.y1, p.x2-this.x,p.y2-this.y);
-                switch (minD) {
-                    case this.x-p.x1:
-                        this.x = p.x1;
-                        break;
-                    case this.y-p.y1:
-                        this.y = p.y1;
-                        break;
-                    case p.x2 - this.x:
-                        this.x = p.x2;
-                        break;
-                    case p.y2 - this.y:
-                        this.y = p.y2;
-                        break;  
-                    default:
-                        alert("something went terribly wrong here, this isn't supposed to be possible. Error code 666 lmao");
-                        break;
+    makeTracks() {
+        for (let i = 1; i <3; i++) {            
+            if (this.onGrass[i]) {
+                if (this.wasOnGrass[i]) {
+                // if (this.tracks[i][0]) {
+                    //continue making tracks
+                    this.tracks[i][this.tracks[i].length-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
+                } else {
+                    //start new track
+                    // console.log('enter grass');
+                    this.tracks[i].push(new Track(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r));
                 }
-                return true;
-            } 
+            } else {
+                if(this.wasOnGrass[i]) {
+                    //stop making tracks
+                    // console.log('exit grass');
+                    this.tracks[i][this.tracks[i].length-1].end(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
+                }
+                // continue not making tracks
+            }
         }
-        return false;
-    }*/
+    }
+
+    drawTracks() {
+        console.time('drawTracks');
+        let tracksDrawn = 0;
+        for(let i = 0; i<4;i++) {
+            this.tracks[i].forEach(t => {
+                t.draw();
+                tracksDrawn+= t.points.length;
+            });
+        }
+        console.log(tracksDrawn);
+        console.timeLog('drawTracks');
+        console.timeEnd('drawTracks')
+    }
+    
+    limitTracks() {
+        for (let i = 1; i <3; i++) {            
+            let totalTracks = 0;
+            this.tracks[i].forEach (t => {
+                totalTracks+= t.points.length;
+            })
+
+            let difference = totalTracks - maxTrackSegments;
+            if (difference > 0) {
+                while(this.tracks[i][0].points.length < difference) {
+                    //the whole track can be removed
+                    difference -= this.tracks[i][0].points.length;
+                    this.tracks[i].shift();
+                }
+                if (difference > 0) {
+                    this.tracks[i][0].points.splice(0,difference);
+                    difference = 0;
+                }
+
+                // this.tracks[i].forEach(t => {
+                //     if (t.points.length < difference) {
+                //         // you need only take away some of this track's points
+                //         t.points.splice(0,difference);
+                //         return;
+                //     } else {
+
+                //     }
+                // });
+            }
+        }
+    }
 
     rotate(dr) {
         this.r += dr;
     }
-
+    
     rotateTurret(dr){
         this.tr += dr;
     }
-
+    
     drawBullets() {
         for (const [bulletID, bullet] of Object.entries(this.bullets)){
             bullet.update()
@@ -461,14 +597,15 @@ class Tank {
     }
 }
 
+
 class Player extends Tank {
     update() {
-       // if (state.is('game')) { // remove if controlls are still enabled during paused screen
-            if (keyIsDown(controls.left)){
-                this.rotate(-rotIncrease);
-            }
-            if (keyIsDown(controls.right)){
-                this.rotate(rotIncrease);
+        // if (state.is('game')) { // remove if controlls are still enabled during paused screen
+        if (keyIsDown(controls.left)){
+            this.rotate(-rotIncrease);
+        }
+        if (keyIsDown(controls.right)){
+            this.rotate(rotIncrease);
             }
             if (keyIsDown(controls.up)){
                 this.v += acceleration;
@@ -483,12 +620,7 @@ class Player extends Tank {
         super.update(); // Tank.update() function
 
         // --- collisions:
-        let tankVerticis = [
-            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
-            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y - tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
-            rotatePointPoint({'x': this.x + tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
-            rotatePointPoint({'x': this.x - tankWidth/2, 'y':this.y + tankLength/2}, {'x': this.x, 'y': this.y}, this.r),
-        ]
+        let tankVerticis = this.getVerticis();
         // DEBUG hitbox
         push();
         stroke(colors['white'])
@@ -503,7 +635,7 @@ class Player extends Tank {
             //     this.x = newPos.x;
             //     this.y = newPos.y;
             // }
-            let tankLevelCol = c.collideWithTank(tankVerticis, {'x': this.x, 'y': this.y});
+            let tankLevelCol = c.collideWithTank(tankVerticis, this.getPos());
             if (tankLevelCol){
                 this.x = tankLevelCol.x;
                 this.y = tankLevelCol.y;

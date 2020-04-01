@@ -54,6 +54,10 @@ let hpHeight = 5;
 let hpOffset = 15;
 let nameOffset = 25;
 
+let trackWidth = 3;
+let trackHeight = 9;
+let maxTrackSegmentLength = 12;
+let maxTrackSegments = 20;
 
 // --- begin of things
 let startingLevel = 0;
@@ -67,11 +71,11 @@ let startHp = 100;
 let colors;
 let backgroundColor;
 let hpBackgroundColor;
-let hpRedLine = 0.25;
 let UIBackgroundColor;
 let buttonColor;
 let grassColor;
 let colliderColor;
+let trackColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -84,6 +88,7 @@ function initColors() {
         'purple': color(255,0,255),
     };
     backgroundColor = color('#222');
+    trackColor = color("#964B00");
     grassColor = colors.green;
     colliderColor = colors.red;
     //backgroundColor = colors.white;
@@ -96,6 +101,7 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let tracks = [];
 let bulletSprite;
 let backgroundImage;
 
@@ -232,6 +238,7 @@ function draw() {
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
         level.drawGrass();
+        // drawTracks();
         drawUI();
         updateCurrentState();
         updatePlayer();
@@ -320,6 +327,9 @@ function updateCurrentState(){
 function updateEnemies() { 
     enemies.forEach((enemy) => {
         enemy.update();
+        enemy.makeTracks();
+        enemy.limitTracks();
+        enemy.drawTracks();
         enemy.draw();
         enemy.drawName();
         enemy.drawBullets();
@@ -328,6 +338,9 @@ function updateEnemies() {
 
 function updatePlayer() {
     player.update();
+    player.makeTracks();
+    player.limitTracks();
+    player.drawTracks();
     player.draw();
     player.drawName();
     player.drawBullets();
@@ -378,6 +391,7 @@ function cap(x, min, max) {
 function linearInter(start, end, progress){
     return (end - start) * progress + start;
 }
+
 function linearInterAngle(start, end, progress){
     start = start + Math.PI;
     end = end + Math.PI;
@@ -490,7 +504,6 @@ function collidePointLine(px,py,x1,y1,x2,y2){
     return false;
 }
 
-
 function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     // is either end INSIDE the circle?
     // if so, return true immediately
@@ -532,5 +545,42 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
       return true;
     }
     return false;
+}
+
+function drawTracks() {
+    tracks.forEach(t => {
+        t.draw();
+    });
+    // let lastTrack = {};
+    // tracks.forEach((t,i,a) => {
+    //     if (i === 0) {
+    //         lastTrack = t;
+    //     } else {
+    //         // if (player.onGrass) {
+    //         line(lastTrack.x*scale, lastTrack.y*scale, t.x*scale, t.y*scale);
+    //         stroke(colors.green);
+    //         point(t.x*scale,t.y*scale);
+    //         stroke(trackColor);
+    //         // }
+
+    //         lastTrack = t;
+    //     }
+    // });
+}
+
+function cleanTracks() {
+    let startCurrentSegment;
+    let endCurrentSegement;
+    let removes = [];
+    for (let i = 0; i<tracks.length-4; i++) {
+        if(collidePointLine(tracks[i+1].x,tracks[i+1].y,tracks[i].x,tracks[i].y,tracks[i+2].x,tracks[i+2].y)) {
+            removes.push(i+1);
+        }
+    }
+    console.log(removes);
+    for (let i = removes.length-1; i >= 0; i--) {
+        tracks.splice(removes[i],1)
+        
+    }    
 }
 //#endregion
