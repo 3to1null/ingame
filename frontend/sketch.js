@@ -15,13 +15,14 @@ state = new StateMachine({ // where to put dis?
         {name: 'editControls', from: 'paused', to: 'editingControls'},
     ],
     methods: {
-        onPause: function() {console.log("pausing")},
-        onPlay: function() {console.log("playing")},
-        onDie: function() {player.destroy()},
-        onRespawn: function() {console.log("respawning")},
-        onEscape: function() {console.log('escaping')},
-        onEditLevel: function() {console.log('editing level')},
-        onEditControls: function() {console.log('editing controlls')},
+        onPause: () => {console.log("pausing")},
+        onPlay: () => {console.log("playing")},
+        onDie: () => {player.destroy()},
+        onRespawn: () => {console.log("respawning")},
+        onEscape: () => {console.log('escaping')},
+        onEditLevel: () => {console.log('editing level')},
+        onEditControls: () => {console.log('editing controlls')},
+        onDone: () => {console.log("done")}
     }
 })
 
@@ -498,9 +499,11 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     if (inside1 || inside2) return true;
 
     // get length of the line
-    let distX = x1 - x2;
+    /*let distX = x1 - x2;
     let distY = y1 - y2;
-    let len = Math.sqrt( (distX*distX) + (distY*distY) );
+    let len = Math.sqrt( (distX*distX) + (distY*distY) );*/
+    
+    let len = dist(x1,y1,x2,y2);
 
     // get dot product of the line and circle
     let dot = ( ((cx-x1)*(x2-x1)) + ((cy-y1)*(y2-y1)) ) / Math.pow(len,2);
@@ -508,7 +511,11 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     // find the closest point on the line
     let closestX = x1 + (dot * (x2-x1));
     let closestY = y1 + (dot * (y2-y1));
-
+    
+    ellipse(closestX*scale,closestY*scale,5);
+    //ellipse(x1*scale,y1*scale,2);
+    //ellipse(x2*scale,y2*scale,2);
+    
     // is this point actually on the line segment?
     // if so keep going, but if not, return false
     let onSegment = collidePointLine(closestX,closestY,x1,y1,x2,y2);
@@ -518,10 +525,9 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     distX = closestX - cx;
     distY = closestY - cy;
 
-    ellipse(closestX*scale,closestY*scale,5);
 
-    let distance = Math.sqrt((distX*distX) + (distY*distY));
-
+    // let distance = Math.sqrt((distX*distX) + (distY*distY));
+    let distance = dist(cx,cy,closestX,closestY);
     if (distance <= diameter/2) {
       return true;
     }

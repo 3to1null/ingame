@@ -79,13 +79,25 @@ class ColliderCircle {//extends Collider {
     }
 
     collideWithTank(tankVerticis, tankCenter){
-        // go through each of the vertices, plus the next vertex in the list
-        let next = 0;
+        let newPos = tankCenter;
+        // go through each of the vertices in the list
+        // for (let current=0; current<tankVerticis.length; current++) {
         for (let current=0; current<tankVerticis.length; current++) {
-            
+            let cv = tankVerticis[current];
+            // if the corner collides with the circle, push the vertex out
+            if (this.collideWithPoint(cv.x, cv.y)) {
+                let cp = this.collissionPoint(cv.x, cv.y);
+                let dx =  cp.x - cv.x;
+                let dy =  cp.y - cv.y;
+                // return {'x': tankCenter.x - dx, 'y': tankCenter.y - dy};
+                newPos.x = tankCenter.x + dx;
+                newPos.y = tankCenter.y + dy;
+            }
+            /*
             // get next vertex in list if we've hit the end, wrap around to 0
             next = current+1;
-            if (next == tankVerticis.length) next = 0;
+            // if (next == tankVerticis.length) next = 0;
+            next = next%tankVerticis.length;
             
             // get the PVectors at our current position this makes our if statement a little cleaner
             let vc = tankVerticis[current];
@@ -95,11 +107,13 @@ class ColliderCircle {//extends Collider {
             let collision = collideLineCircle(vc.x,vc.y, vn.x,vn.y, this.x, this.y, this.r*2);
             if (collision){
                 console.log('collison!!!') 
-                return true;
-              }
+                return this.collissionPoint(tankCenter.x,tankCenter.y);
+              }*/
         }
         // otherwise, after all that, return false
-        return false;
+        
+            return newPos
+        
     }
 
     collissionPoint(x,y) {
@@ -490,7 +504,6 @@ class Player extends Tank {
             //     this.y = newPos.y;
             // }
             let tankLevelCol = c.collideWithTank(tankVerticis, {'x': this.x, 'y': this.y});
-            
             if (tankLevelCol){
                 this.x = tankLevelCol.x;
                 this.y = tankLevelCol.y;
