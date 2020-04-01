@@ -15,13 +15,14 @@ state = new StateMachine({ // where to put dis?
         {name: 'editControls', from: 'paused', to: 'editingControls'},
     ],
     methods: {
-        onPause: function() {console.log("pausing")},
-        onPlay: function() {console.log("playing")},
-        onDie: function() {player.destroy()},
-        onRespawn: function() {console.log("respawning")},
-        onEscape: function() {console.log('escaping')},
-        onEditLevel: function() {console.log('editing level')},
-        onEditControls: function() {console.log('editing controlls')},
+        onPause: () => {console.log("pausing")},
+        onPlay: () => {console.log("playing")},
+        onDie: () => {player.destroy()},
+        onRespawn: () => {console.log("respawning")},
+        onEscape: () => {console.log('escaping')},
+        onEditLevel: () => {console.log('editing level')},
+        onEditControls: () => {console.log('editing controlls')},
+        onDone: () => {console.log("done")}
     }
 })
 
@@ -53,6 +54,10 @@ let hpHeight = 5;
 let hpOffset = 15;
 let nameOffset = 25;
 
+let trackWidth = 3;
+let trackHeight = 9;
+let maxTrackSegmentLength = 12;
+let maxTrackSegments = 20;
 
 // --- begin of things
 let startingLevel = 0;
@@ -66,11 +71,11 @@ let startHp = 100;
 let colors;
 let backgroundColor;
 let hpBackgroundColor;
-let hpRedLine = 0.25;
 let UIBackgroundColor;
 let buttonColor;
 let grassColor;
 let colliderColor;
+let trackColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -83,6 +88,7 @@ function initColors() {
         'purple': color(255,0,255),
     };
     backgroundColor = color('#222');
+    trackColor = color("#964B00");
     grassColor = colors.green;
     colliderColor = colors.red;
     //backgroundColor = colors.white;
@@ -95,6 +101,7 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let tracks = [];
 let bulletSprite;
 let backgroundImage;
 
@@ -231,6 +238,7 @@ function draw() {
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
         level.drawGrass();
+        // drawTracks();
         drawUI();
         updateCurrentState();
         updatePlayer();
@@ -319,6 +327,9 @@ function updateCurrentState(){
 function updateEnemies() { 
     enemies.forEach((enemy) => {
         enemy.update();
+        enemy.makeTracks();
+        enemy.limitTracks();
+        enemy.drawTracks();
         enemy.draw();
         enemy.drawName();
         enemy.drawBullets();
@@ -327,6 +338,9 @@ function updateEnemies() {
 
 function updatePlayer() {
     player.update();
+    player.makeTracks();
+    player.limitTracks();
+    player.drawTracks();
     player.draw();
     player.drawName();
     player.drawBullets();
@@ -377,6 +391,7 @@ function cap(x, min, max) {
 function linearInter(start, end, progress){
     return (end - start) * progress + start;
 }
+
 function linearInterAngle(start, end, progress){
     start = start + Math.PI;
     end = end + Math.PI;
@@ -489,7 +504,6 @@ function collidePointLine(px,py,x1,y1,x2,y2){
     return false;
 }
 
-
 function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     // is either end INSIDE the circle?
     // if so, return true immediately
@@ -498,9 +512,11 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     if (inside1 || inside2) return true;
 
     // get length of the line
-    let distX = x1 - x2;
+    /*let distX = x1 - x2;
     let distY = y1 - y2;
-    let len = Math.sqrt( (distX*distX) + (distY*distY) );
+    let len = Math.sqrt( (distX*distX) + (distY*distY) );*/
+    
+    let len = dist(x1,y1,x2,y2);
 
     // get dot product of the line and circle
     let dot = ( ((cx-x1)*(x2-x1)) + ((cy-y1)*(y2-y1)) ) / Math.pow(len,2);
@@ -508,7 +524,11 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     // find the closest point on the line
     let closestX = x1 + (dot * (x2-x1));
     let closestY = y1 + (dot * (y2-y1));
-
+    
+    ellipse(closestX*scale,closestY*scale,5);
+    //ellipse(x1*scale,y1*scale,2);
+    //ellipse(x2*scale,y2*scale,2);
+    
     // is this point actually on the line segment?
     // if so keep going, but if not, return false
     let onSegment = collidePointLine(closestX,closestY,x1,y1,x2,y2);
@@ -518,13 +538,49 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     distX = closestX - cx;
     distY = closestY - cy;
 
-    ellipse(closestX*scale,closestY*scale,5);
 
-    let distance = Math.sqrt((distX*distX) + (distY*distY));
-
+    // let distance = Math.sqrt((distX*distX) + (distY*distY));
+    let distance = dist(cx,cy,closestX,closestY);
     if (distance <= diameter/2) {
       return true;
     }
     return false;
+}
+
+function drawTracks() {
+    tracks.forEach(t => {
+        t.draw();
+    });
+    // let lastTrack = {};
+    // tracks.forEach((t,i,a) => {
+    //     if (i === 0) {
+    //         lastTrack = t;
+    //     } else {
+    //         // if (player.onGrass) {
+    //         line(lastTrack.x*scale, lastTrack.y*scale, t.x*scale, t.y*scale);
+    //         stroke(colors.green);
+    //         point(t.x*scale,t.y*scale);
+    //         stroke(trackColor);
+    //         // }
+
+    //         lastTrack = t;
+    //     }
+    // });
+}
+
+function cleanTracks() {
+    let startCurrentSegment;
+    let endCurrentSegement;
+    let removes = [];
+    for (let i = 0; i<tracks.length-4; i++) {
+        if(collidePointLine(tracks[i+1].x,tracks[i+1].y,tracks[i].x,tracks[i].y,tracks[i+2].x,tracks[i+2].y)) {
+            removes.push(i+1);
+        }
+    }
+    console.log(removes);
+    for (let i = removes.length-1; i >= 0; i--) {
+        tracks.splice(removes[i],1)
+        
+    }    
 }
 //#endregion
