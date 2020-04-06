@@ -57,39 +57,45 @@ class Level {
 class Track {
     constructor(firstX,firstY,firstR) {
         this.ended = false;
-        this.points = [{'x':firstX,'y':firstY,'r':firstR}];
+        this.points = [{'x':firstX,'y':firstY,'r':firstR, 'd': false, 'l': trackLifeSpan}];
     }
 
     draw() {
-        push();
-        for (let i = 0; i < this.points.length - 1; i++) {
-            const cp = this.points[i];
-            const np = this.points[i+1];
-            // line(cp.x*scale, cp.y*scale, np.x*scale, np.y*scale);
-            push();
-            fill(trackColor);
-            noStroke();
-            translate(cp.x*scale,cp.y*scale);
-            rotate(cp.r);
-            rect(0, 0, trackWidth*scale, trackHeight*scale);
-            pop();
-            // stroke(colors.red);
-            // point(cp.x*scale,cp.y*scale); // for debugging
-            // stroke(trackColor);
-        }
-        pop();
+        this.points.forEach((p,i,a) => {
+            
+            if (p.d && i < a.length-1) {
+                push();
+                let life = p.l/trackLifeSpan/trackFadingPoint;
+                trackColor.setAlpha(cap(life, 0, 1)*255);
+                // trackColor.setAlpha((life>trackFadingPoint) ? 255 : 255*life);
+                fill(trackColor);
+                noStroke();
+                translate(p.x*scale,p.y*scale);
+                rotate(p.r);
+                rect(0, 0, trackWidth*scale, trackHeight*scale);
+                pop();
+            }
+            p.l--;
+            if (p.l < 0) {
+                //remove point
+                this.points.splice(i,1);
+            }
+        });
     }
 
-    addPoint(x,y,r) {
+    addPoint(x,y,r,d) {
         let pl = this.points.length;
-        let np = {'x':x,'y':y,'r':r};
+        let np = {'x':x,'y':y,'r':r, 'd':d, 'l': trackLifeSpan};
         
         if (pl < 3) {
+            // np.d = d;
             this.points.push(np);
         } else if (dist(this.points[pl-2].x, this.points[pl-2].y, np.x, np.y) < maxTrackSegmentLength) {
             // not long enough to be a new point
+            // np.d = 0;
             this.points[pl-1] = np;
         } else {
+            // np.d = d;
             this.points.push(np);
         }
     }
@@ -394,7 +400,7 @@ class Tank {
         this.onGrass = [0,0,0,0];
 
         this.bullets = {};
-        this.tracks = [[],[],[],[]];
+        this.tracks = [new Track(this.x,this.y,this.r), new Track(this.x,this.y,this.r)];
         this.upgrades = {
             'superSpeed': 0,
             'machinegun': 0,
@@ -509,59 +515,51 @@ class Tank {
 
     makeTracks() {
         for (let i = 1; i <3; i++) {            
-            if (this.onGrass[i]) {
-                if (this.wasOnGrass[i]) {
+            // if (this.onGrass[i]) {
+                this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
+                // if (this.wasOnGrass[i]) {
                 // if (this.tracks[i][0]) {
                     //continue making tracks
-                    this.tracks[i][this.tracks[i].length-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                } else {
+                    // this.tracks[i][this.tracks[i].length-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
+                // } else {
                     //start new track
                     // console.log('enter grass');
-                    this.tracks[i].push(new Track(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r));
-                }
-            } else {
-                if(this.wasOnGrass[i]) {
+                    // this.tracks[i].push(new Track(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r));
+                // }
+            // } else {
+                // if(this.wasOnGrass[i]) {
                     //stop making tracks
                     // console.log('exit grass');
-                    this.tracks[i][this.tracks[i].length-1].end(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                }
+                    // this.tracks[i][this.tracks[i].length-1].end(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
+                // }
                 // continue not making tracks
-            }
+            // }
         }
     }
 
     drawTracks() {
         console.time('drawTracks');
         let tracksDrawn = 0;
-        for(let i = 0; i<4;i++) {
-            this.tracks[i].forEach(t => {
-                t.draw();
-                tracksDrawn+= t.points.length;
-            });
+        for(let i = 1; i<3;i++) {
+            this.tracks[i-1].draw();
+                // tracksDrawn+= t.points.length;
+            // });
         }
-        console.log(tracksDrawn);
+        // console.log(tracksDrawn);
         console.timeLog('drawTracks');
         console.timeEnd('drawTracks')
     }
     
     limitTracks() {
         for (let i = 1; i <3; i++) {            
-            let totalTracks = 0;
-            this.tracks[i].forEach (t => {
-                totalTracks+= t.points.length;
-            })
+            // let totalTracks = 0;
+            // this.tracks[i-1].forEach (t => {
+            let totalTracks = this.tracks[i-1].points.length;
+            // })
 
             let difference = totalTracks - maxTrackSegments;
             if (difference > 0) {
-                while(this.tracks[i][0].points.length < difference) {
-                    //the whole track can be removed
-                    difference -= this.tracks[i][0].points.length;
-                    this.tracks[i].shift();
-                }
-                if (difference > 0) {
-                    this.tracks[i][0].points.splice(0,difference);
-                    difference = 0;
-                }
+                this.tracks[i-1].points.splice(0,difference);
 
                 // this.tracks[i].forEach(t => {
                 //     if (t.points.length < difference) {
@@ -596,7 +594,6 @@ class Tank {
         }
     }
 }
-
 
 class Player extends Tank {
     update() {
