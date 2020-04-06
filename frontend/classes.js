@@ -378,9 +378,7 @@ class Tank {
 
         this.needsCleanup = false;
         this.isHit = false;
-        // this.wasOnGrass = false;
-        this.wasOnGrass = [0,0,0,0];
-        // this.onGrass = false;
+        
         this.onGrass = [0,0,0,0];
 
         this.bullets = {};
@@ -471,14 +469,16 @@ class Tank {
             state.die();
         }
 
-        // --- grass
-        // this.wasOnGrass = this.onGrass;
-        this.wasOnGrass = this.onGrass;
-        // this.onGrass = false;
-        this.onGrass = [0,0,0,0];
-        level.environment.grass.forEach(g => {
-            this.getVerticis().forEach((v, i) => {
+        this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
+        this.getVerticis().forEach((v, i) => {
+            level.environment.grass.forEach(g => {
                 if (g.collideWithPoint(v.x,v.y)) {
+                    // this.onGrass = true
+                    this.onGrass[i] = true
+                }
+            });
+            level.environment.snow.forEach(s => {
+                if (s.collideWithPoint(v.x,v.y)) {
                     // this.onGrass = true
                     this.onGrass[i] = true
                 }
@@ -505,9 +505,9 @@ class Tank {
 
     drawTracks() {
         // console.time('drawTracks');
-        for(let i = 1; i<3;i++) {
-            this.tracks[i-1].draw();
-        }
+        this.tracks.forEach(t => {
+            t.draw();
+        });
         // console.timeLog('drawTracks');
         // console.timeEnd('drawTracks')
     }
