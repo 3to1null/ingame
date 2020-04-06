@@ -56,7 +56,6 @@ class Level {
 
 class Track {
     constructor(firstX,firstY,firstR) {
-        this.ended = false;
         this.points = [{'x':firstX,'y':firstY,'r':firstR, 'd': false, 'l': trackLifeSpan}];
     }
 
@@ -88,32 +87,12 @@ class Track {
         let np = {'x':x,'y':y,'r':r, 'd':d, 'l': trackLifeSpan};
         
         if (pl < 3) {
-            // np.d = d;
             this.points.push(np);
         } else if (dist(this.points[pl-2].x, this.points[pl-2].y, np.x, np.y) < maxTrackSegmentLength) {
             // not long enough to be a new point
-            // np.d = 0;
             this.points[pl-1] = np;
         } else {
-            // np.d = d;
             this.points.push(np);
-        }
-    }
-
-    end(x,y,r) {
-        this.addPoint(x,y,r);
-        this.ended = true;
-        // this.cleanup();
-    }
-
-    cleanup(lim = this.points.length-3) {
-        for (let i = lim; i >= 0; i--) {
-            const fp = this.points[i];
-            const mp = this.points[i+1];
-            const lp = this.points[i+2];
-            if (collidePointLine(mp.x,mp.y,fp.x,fp.y,lp.x,lp.y)) {
-                this.points.splice(i+1, 1);
-            }
         }
     }
 }
@@ -515,65 +494,19 @@ class Tank {
 
     makeTracks() {
         for (let i = 1; i <3; i++) {            
-            // if (this.onGrass[i]) {
-                this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
-                // if (this.wasOnGrass[i]) {
-                // if (this.tracks[i][0]) {
-                    //continue making tracks
-                    // this.tracks[i][this.tracks[i].length-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                // } else {
-                    //start new track
-                    // console.log('enter grass');
-                    // this.tracks[i].push(new Track(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r));
-                // }
-            // } else {
-                // if(this.wasOnGrass[i]) {
-                    //stop making tracks
-                    // console.log('exit grass');
-                    // this.tracks[i][this.tracks[i].length-1].end(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                // }
-                // continue not making tracks
-            // }
+            this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
         }
     }
 
     drawTracks() {
-        console.time('drawTracks');
-        let tracksDrawn = 0;
+        // console.time('drawTracks');
         for(let i = 1; i<3;i++) {
             this.tracks[i-1].draw();
-                // tracksDrawn+= t.points.length;
-            // });
         }
-        // console.log(tracksDrawn);
-        console.timeLog('drawTracks');
-        console.timeEnd('drawTracks')
+        // console.timeLog('drawTracks');
+        // console.timeEnd('drawTracks')
     }
     
-    limitTracks() {
-        for (let i = 1; i <3; i++) {            
-            // let totalTracks = 0;
-            // this.tracks[i-1].forEach (t => {
-            let totalTracks = this.tracks[i-1].points.length;
-            // })
-
-            let difference = totalTracks - maxTrackSegments;
-            if (difference > 0) {
-                this.tracks[i-1].points.splice(0,difference);
-
-                // this.tracks[i].forEach(t => {
-                //     if (t.points.length < difference) {
-                //         // you need only take away some of this track's points
-                //         t.points.splice(0,difference);
-                //         return;
-                //     } else {
-
-                //     }
-                // });
-            }
-        }
-    }
-
     rotate(dr) {
         this.r += dr;
     }

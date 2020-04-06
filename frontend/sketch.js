@@ -57,7 +57,6 @@ let nameOffset = 25;
 let trackWidth = 3;
 let trackHeight = 9;
 let maxTrackSegmentLength = 12;
-let maxTrackSegments = 20;
 let trackLifeSpan = 255;
 let trackFadingPoint = 0.5;
 
@@ -341,7 +340,6 @@ function updateEnemies() {
 function updatePlayer() {
     player.update();
     player.makeTracks();
-    // player.limitTracks();
     player.drawTracks();
     player.draw();
     player.drawName();
