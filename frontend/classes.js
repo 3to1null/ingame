@@ -4,36 +4,41 @@ class Level {
     constructor(data) {
         this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
-        this.environment = {'grass': [], 'colliders': []};
-        data.environment.grass.forEach(g => {
-            this.environment.grass.push(new ColliderRect(g.x1,g.y1,g.x2,g.y2));
-        });
-        data.environment.colliders.forEach(c => {
-            if (c.r) {
-                this.environment.colliders.push(new ColliderCircle(c.x,c.y,c.r));
-            }
-            if (c.x1) {
-                this.environment.colliders.push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
-            }
-        });
+        
+        this.environment = {'grass': [], 'colliders': [], 'snow': []};
+
+        for (let key in data.environment) {
+            data.environment[key].forEach(c => {
+                // console.log(this);
+                if (c.r) {
+                    this.environment[key].push(new ColliderCircle(c.x,c.y,c.r));
+                }
+                if (c.x1) {
+                    this.environment[key].push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
+                }
+            })
+        }
     }
-
-    drawGrass() {
+    
+    drawEnvironment() {
         push();
-        noStroke();
-        fill(grassColor);
         rectMode(CORNERS);
-        let patch;
-        level.environment.grass.forEach(g => {
-            g.draw(grassColor);
-        });
-
-        if (addCollider.shape == "rect" && addCollider.destination == "grass" && newCollider.x2) {
+        noStroke();
+        fill(environmentColors[addCollider.destination]);
+        for (key in this.environment) {
+            if (key !== "colliders") {
+                this.environment[key].forEach(e => {
+                    e.draw(environmentColors[key]);
+                });
+            }
+        }
+        if (addCollider.shape == "rect" && newCollider.x2) {
             rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
         }
-        if (addCollider.shape == "circle" && addCollider.destination == "grass" && newCollider.r) {
+        if (addCollider.shape == "circle" && newCollider.r) {
             ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        }pop();
+        }
+        pop();
     }
 
     drawColliders() {

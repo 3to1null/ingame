@@ -71,7 +71,20 @@ function keyPressed() {
 
     if (keyCode == controls.toggleColliderDestination) {
         // state.editLevel();
-        addCollider.destination = (addCollider.destination === "grass") ? "colliders" : "grass";
+        switch (addCollider.destination) {
+            case "colliders":
+                addCollider.destination = "grass";
+                break;
+            case "grass":
+                addCollider.destination = "snow";
+                break;
+            case "snow":
+                addCollider.destination = "colliders";
+            default:
+                break;
+        }
+        // addCollider.destination = (addCollider.destination === "grass") ? "colliders" : "snow";
+
     }
     
     if (keyCode == controls.toggleColliderShape) {
