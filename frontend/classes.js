@@ -4,36 +4,41 @@ class Level {
     constructor(data) {
         this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
-        this.environment = {'grass': [], 'colliders': []};
-        data.environment.grass.forEach(g => {
-            this.environment.grass.push(new ColliderRect(g.x1,g.y1,g.x2,g.y2));
-        });
-        data.environment.colliders.forEach(c => {
-            if (c.r) {
-                this.environment.colliders.push(new ColliderCircle(c.x,c.y,c.r));
-            }
-            if (c.x1) {
-                this.environment.colliders.push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
-            }
-        });
+        
+        this.environment = {'grass': [], 'colliders': [], 'snow': []};
+
+        for (let key in data.environment) {
+            data.environment[key].forEach(c => {
+                // console.log(this);
+                if (c.r) {
+                    this.environment[key].push(new ColliderCircle(c.x,c.y,c.r));
+                }
+                if (c.x1) {
+                    this.environment[key].push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
+                }
+            })
+        }
     }
-
-    drawGrass() {
+    
+    drawEnvironment() {
         push();
-        noStroke();
-        fill(grassColor);
         rectMode(CORNERS);
-        let patch;
-        level.environment.grass.forEach(g => {
-            g.draw(grassColor);
-        });
-
-        if (addCollider.shape == "rect" && addCollider.destination == "grass" && newCollider.x2) {
+        noStroke();
+        fill(environmentColors[addCollider.destination]);
+        for (key in this.environment) {
+            if (key !== "colliders") {
+                this.environment[key].forEach(e => {
+                    e.draw(environmentColors[key]);
+                });
+            }
+        }
+        if (addCollider.shape == "rect" && newCollider.x2) {
             rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
         }
-        if (addCollider.shape == "circle" && addCollider.destination == "grass" && newCollider.r) {
+        if (addCollider.shape == "circle" && newCollider.r) {
             ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        }pop();
+        }
+        pop();
     }
 
     drawColliders() {
@@ -56,33 +61,35 @@ class Level {
 
 class Track {
     constructor(firstX,firstY,firstR) {
-        this.ended = false;
-        this.points = [{'x':firstX,'y':firstY,'r':firstR}];
+        this.points = [{'x':firstX,'y':firstY,'r':firstR, 'd': false, 'l': trackLifeSpan}];
     }
 
     draw() {
-        push();
-        for (let i = 0; i < this.points.length - 1; i++) {
-            const cp = this.points[i];
-            const np = this.points[i+1];
-            // line(cp.x*scale, cp.y*scale, np.x*scale, np.y*scale);
-            push();
-            fill(trackColor);
-            noStroke();
-            translate(cp.x*scale,cp.y*scale);
-            rotate(cp.r);
-            rect(0, 0, trackWidth*scale, trackHeight*scale);
-            pop();
-            // stroke(colors.red);
-            // point(cp.x*scale,cp.y*scale); // for debugging
-            // stroke(trackColor);
-        }
-        pop();
+        this.points.forEach((p,i,a) => {
+            
+            if (p.d && i < a.length-1) {
+                push();
+                let life = p.l/trackLifeSpan/trackFadingPoint;
+                trackColor.setAlpha(cap(life, 0, 1)*255);
+                // trackColor.setAlpha((life>trackFadingPoint) ? 255 : 255*life);
+                fill(trackColor);
+                noStroke();
+                translate(p.x*scale,p.y*scale);
+                rotate(p.r);
+                rect(0, 0, trackWidth*scale, trackHeight*scale);
+                pop();
+            }
+            p.l--;
+            if (p.l < 0) {
+                //remove point
+                this.points.splice(i,1);
+            }
+        });
     }
 
-    addPoint(x,y,r) {
+    addPoint(x,y,r,d) {
         let pl = this.points.length;
-        let np = {'x':x,'y':y,'r':r};
+        let np = {'x':x,'y':y,'r':r, 'd':d, 'l': trackLifeSpan};
         
         if (pl < 3) {
             this.points.push(np);
@@ -91,23 +98,6 @@ class Track {
             this.points[pl-1] = np;
         } else {
             this.points.push(np);
-        }
-    }
-
-    end(x,y,r) {
-        this.addPoint(x,y,r);
-        this.ended = true;
-        // this.cleanup();
-    }
-
-    cleanup(lim = this.points.length-3) {
-        for (let i = lim; i >= 0; i--) {
-            const fp = this.points[i];
-            const mp = this.points[i+1];
-            const lp = this.points[i+2];
-            if (collidePointLine(mp.x,mp.y,fp.x,fp.y,lp.x,lp.y)) {
-                this.points.splice(i+1, 1);
-            }
         }
     }
 }
@@ -388,13 +378,11 @@ class Tank {
 
         this.needsCleanup = false;
         this.isHit = false;
-        // this.wasOnGrass = false;
-        this.wasOnGrass = [0,0,0,0];
-        // this.onGrass = false;
+        
         this.onGrass = [0,0,0,0];
 
         this.bullets = {};
-        this.tracks = [[],[],[],[]];
+        this.tracks = [new Track(this.x,this.y,this.r), new Track(this.x,this.y,this.r)];
         this.upgrades = {
             'superSpeed': 0,
             'machinegun': 0,
@@ -481,14 +469,16 @@ class Tank {
             state.die();
         }
 
-        // --- grass
-        // this.wasOnGrass = this.onGrass;
-        this.wasOnGrass = this.onGrass;
-        // this.onGrass = false;
-        this.onGrass = [0,0,0,0];
-        level.environment.grass.forEach(g => {
-            this.getVerticis().forEach((v, i) => {
+        this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
+        this.getVerticis().forEach((v, i) => {
+            level.environment.grass.forEach(g => {
                 if (g.collideWithPoint(v.x,v.y)) {
+                    // this.onGrass = true
+                    this.onGrass[i] = true
+                }
+            });
+            level.environment.snow.forEach(s => {
+                if (s.collideWithPoint(v.x,v.y)) {
                     // this.onGrass = true
                     this.onGrass[i] = true
                 }
@@ -509,73 +499,19 @@ class Tank {
 
     makeTracks() {
         for (let i = 1; i <3; i++) {            
-            if (this.onGrass[i]) {
-                if (this.wasOnGrass[i]) {
-                // if (this.tracks[i][0]) {
-                    //continue making tracks
-                    this.tracks[i][this.tracks[i].length-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                } else {
-                    //start new track
-                    // console.log('enter grass');
-                    this.tracks[i].push(new Track(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r));
-                }
-            } else {
-                if(this.wasOnGrass[i]) {
-                    //stop making tracks
-                    // console.log('exit grass');
-                    this.tracks[i][this.tracks[i].length-1].end(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
-                }
-                // continue not making tracks
-            }
+            this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
         }
     }
 
     drawTracks() {
-        console.time('drawTracks');
-        let tracksDrawn = 0;
-        for(let i = 0; i<4;i++) {
-            this.tracks[i].forEach(t => {
-                t.draw();
-                tracksDrawn+= t.points.length;
-            });
-        }
-        console.log(tracksDrawn);
-        console.timeLog('drawTracks');
-        console.timeEnd('drawTracks')
+        // console.time('drawTracks');
+        this.tracks.forEach(t => {
+            t.draw();
+        });
+        // console.timeLog('drawTracks');
+        // console.timeEnd('drawTracks')
     }
     
-    limitTracks() {
-        for (let i = 1; i <3; i++) {            
-            let totalTracks = 0;
-            this.tracks[i].forEach (t => {
-                totalTracks+= t.points.length;
-            })
-
-            let difference = totalTracks - maxTrackSegments;
-            if (difference > 0) {
-                while(this.tracks[i][0].points.length < difference) {
-                    //the whole track can be removed
-                    difference -= this.tracks[i][0].points.length;
-                    this.tracks[i].shift();
-                }
-                if (difference > 0) {
-                    this.tracks[i][0].points.splice(0,difference);
-                    difference = 0;
-                }
-
-                // this.tracks[i].forEach(t => {
-                //     if (t.points.length < difference) {
-                //         // you need only take away some of this track's points
-                //         t.points.splice(0,difference);
-                //         return;
-                //     } else {
-
-                //     }
-                // });
-            }
-        }
-    }
-
     rotate(dr) {
         this.r += dr;
     }
@@ -596,7 +532,6 @@ class Tank {
         }
     }
 }
-
 
 class Player extends Tank {
     update() {

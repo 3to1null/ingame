@@ -57,7 +57,8 @@ let nameOffset = 25;
 let trackWidth = 3;
 let trackHeight = 9;
 let maxTrackSegmentLength = 12;
-let maxTrackSegments = 20;
+let trackLifeSpan = 255;
+let trackFadingPoint = 0.5;
 
 // --- begin of things
 let startingLevel = 0;
@@ -69,6 +70,7 @@ let startHp = 100;
 
 // --- colors of things
 let colors;
+let environmentColors;
 let backgroundColor;
 let hpBackgroundColor;
 let UIBackgroundColor;
@@ -87,6 +89,11 @@ function initColors() {
         'blue': color(0,0,255),
         'purple': color(255,0,255),
     };
+    environmentColors = {
+        'colliders': colors.red,
+        'grass': colors.green,
+        'snow': colors.white,
+    }
     backgroundColor = color('#222');
     trackColor = color("#964B00");
     grassColor = colors.green;
@@ -237,8 +244,9 @@ function draw() {
     if (state.is('game')) { // main game loop
         background(backgroundColor);
         image(backgroundImage, 0, 0, width, height);
-        level.drawGrass();
+        // level.drawGrass();
         // drawTracks();
+        level.drawEnvironment();
         drawUI();
         updateCurrentState();
         updatePlayer();
@@ -256,7 +264,7 @@ function draw() {
 
     if (state.is('editingLevel')) {
         image(backgroundImage, 0, 0, width, height);
-        level.drawGrass();
+        level.drawEnvironment();
         updatePlayer();
         level.drawColliders();
     }
@@ -339,7 +347,6 @@ function updateEnemies() {
 function updatePlayer() {
     player.update();
     player.makeTracks();
-    player.limitTracks();
     player.drawTracks();
     player.draw();
     player.drawName();
