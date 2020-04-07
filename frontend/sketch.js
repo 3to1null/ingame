@@ -336,7 +336,7 @@ function updateEnemies() {
     enemies.forEach((enemy) => {
         enemy.update();
         enemy.makeTracks();
-        enemy.limitTracks();
+        // enemy.limitTracks();
         enemy.drawTracks();
         enemy.draw();
         enemy.drawName();
