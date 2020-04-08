@@ -558,21 +558,6 @@ function drawTracks() {
     tracks.forEach(t => {
         t.draw();
     });
-    // let lastTrack = {};
-    // tracks.forEach((t,i,a) => {
-    //     if (i === 0) {
-    //         lastTrack = t;
-    //     } else {
-    //         // if (player.onGrass) {
-    //         line(lastTrack.x*scale, lastTrack.y*scale, t.x*scale, t.y*scale);
-    //         stroke(colors.green);
-    //         point(t.x*scale,t.y*scale);
-    //         stroke(trackColor);
-    //         // }
-
-    //         lastTrack = t;
-    //     }
-    // });
 }
 
 function cleanTracks() {
