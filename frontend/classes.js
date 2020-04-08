@@ -280,6 +280,7 @@ class Bullet {
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
+        console.log("pief!");
     }
 
     updateInternals(x,y,r){
@@ -362,6 +363,18 @@ class Bullet {
 
 }
 
+class Surface {
+    constructor(n,c,v,cwt,cwb,tmt,f) {
+        this.n = n,
+        this.c = c,
+        this.maxV = v,
+        this.collideWithTank = cwt,
+        this.collidesWithBullets = cwb,
+        this.tanksMakeTracks = tmt,
+        this.friction = f
+    }
+}
+
 class Tank {
     constructor(id, c, x, y, r, v, tr) {
         this.id = id;
@@ -379,7 +392,8 @@ class Tank {
         this.needsCleanup = false;
         this.isHit = false;
         
-        this.onGrass = [0,0,0,0];
+        this.wasOnSurface = ["default","default","default","default"];
+        this.onSurface = ["default","default","default","default"];
 
         this.bullets = {};
         this.tracks = [new Track(this.x,this.y,this.r), new Track(this.x,this.y,this.r)];
