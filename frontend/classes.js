@@ -272,15 +272,16 @@ class ColliderRect { //extends Collider {
 }
 
 class Bullet {
-    constructor(x, y, r, isPlayerBullet) {
+    constructor(x, y, r, v, isPlayerBullet) {
         this.x = x;
         this.y = y;
-        this.v = bulletSpeed;
+        // this.v = bulletSpeed;
+        this.v = v;
         this.dmg = bulletDamage;
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
-        console.log("pief!");
+        console.log(r);
     }
 
     updateInternals(x,y,r){
@@ -358,7 +359,7 @@ class Bullet {
         if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
             this.needsCleanup = true;
         }
-
+        // console.log(this);
     };
 
 }
@@ -613,10 +614,19 @@ class Player extends Tank {
     }
 
     fire() { // nts look at with and height
+        // let bulletVX, bulletVY;
+        let tankVX = this.v*cos(this.r);
+        let tankVY = this.v*sin(this.r);
+        let bulletVX = bulletSpeed*cos(this.tr);
+        // console.log(bulletVX);
+        let bulletVY = bulletSpeed*sin(this.tr);
+        let compensation = (bulletVX + tankVX)<0 ? PI : 0; // compensation for gayness of atan
+
         this.bullets[floor(Math.random() * 10000000)] = new Bullet(
             this.x + (barrelLength - barrelOffSet) * cos(this.tr), 
             this.y + (barrelLength - barrelOffSet) * sin(this.tr), 
-            this.tr,
+            atan((bulletVY + tankVY)/(bulletVX+tankVX)) + compensation,
+            bulletSpeed,
             true
         );
     }
@@ -656,7 +666,7 @@ class Enemy extends Tank {
         for (const [bulletID, bulletState] of Object.entries(bulletsUpdate)){
             if(!(bulletID in this.bullets)){
                 // Create new bullet.
-                this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'], false)
+                this.bullets[bulletID] = new Bullet(bulletState['x'], bulletState['y'], bulletState['r'], bulletState['v'], false)
             }
         }
         // Loop through already existing bullets
