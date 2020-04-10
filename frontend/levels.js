@@ -2,21 +2,12 @@ let levels = [
     { // level 0
         'backgroundImage': "src/image/streets.jpg",
         'gameRules': {},
-        'environment': {
-            
-        }
+        'environment': {}
     },
     { // level 1
         'backgroundImage': "src/image/square.png",
         'gameRules': {},
-        'environment': {
-            "grass":[
-                
-            ],
-            "colliders":[
-                
-            ]
-        } 
+        'environment': {} 
     },
     { // level template
         'backgroundImage': 'src/image/',
