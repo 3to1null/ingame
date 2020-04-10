@@ -55,14 +55,14 @@ function keyPressed() {
     }
 
     if (keyCode === ESCAPE) {
-        newCollider.reset();
+        newCollider.empty = true;
         //state.done();
     }
 
     if (keyCode == controls.toggleLevelEditing) {
         if (state.is('editingLevel')) {
             console.log(JSON.stringify(level.environment));
-            newCollider.reset();
+            newCollider.empty = true;
             state.done();
         } else {
             state.editLevel();
@@ -136,7 +136,7 @@ function mousePressed() {
             newCollider.y2 = mouseY/scale;
         } else { // newCollider is done
             level.environment[newCollider.type].push(new Collider(newCollider));
-            newCollider.reset();
+            newCollider.empty = true;
         }
     }
     

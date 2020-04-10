@@ -108,6 +108,11 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let images = [];
+let sounds = [
+    'boem',
+    'shot',
+];
 let bulletSprite;
 let backgroundImage;
 
@@ -116,13 +121,11 @@ let level;
 let newCollider = {
     'empty': true,
     'shape': Collider.shapes[0],
-    'type': Collider.types[0],
-    'reset': function() {
-        this.empty = true;
-    }
-
+    'type': Collider.types[0]
 };
-// let grassSurface = new Surface('grass', colors.green, 2, false, false, true, 0);
+
+let soundVolume = 0.05;
+
 
 // #endregion
 
@@ -238,6 +241,9 @@ function removePlayer(id) {
 
 function setup() {
     bulletSprite = loadImage('src/image/bullet.png');
+    images = loadImages();
+    sounds = loadSounds();
+    // setVolume(soundVolume);
     createCanvas(0,0).parent('canvasholder');
     loadLevel(startingLevel);
     rectMode(CENTER);
@@ -384,6 +390,23 @@ function loadLevel(l) {
     backgroundImage = loadImage(level['backgroundImage']);
     console.log(level);
     
+}
+
+function loadSounds() {
+    let a = {};
+    sounds.forEach((i) => {
+        a[i] = loadSound('src/audio/'+i+'.wav');
+        a[i].setVolume(soundVolume);
+    });
+    return a;
+}
+
+function loadImages() {
+    let a = {};
+    images.forEach(i => {
+        a[i] = loadImage('src/audio/'+i+'.png');
+    })
+    return a;
 }
 
 function windowResized() {

@@ -200,13 +200,6 @@ class ColliderCircle extends Collider {
 }
 
 class ColliderRect extends Collider {
-    // constructor(x1,y1,x2,y2) {
-    //     this.x1 = x1,
-    //     this.y1 = y1,
-    //     this.x2 = x2,
-    //     this.y2 = y2
-    // }
-
     draw() {
         push();
         rectMode(CORNERS);
@@ -300,12 +293,12 @@ class Bullet {
     constructor(x, y, r, v, isPlayerBullet) {
         this.x = x;
         this.y = y;
-        // this.v = bulletSpeed;
         this.v = v;
         this.dmg = bulletDamage;
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
+        sounds.shot.play();
     }
 
     updateInternals(x,y,r){
@@ -661,7 +654,8 @@ class Player extends Tank {
     }
 
     onReceivedHit(){
-        console.log('Got hit!')
+        console.log('Got hit!');
+        sounds.boem.play();
     }
 
     destroy(){
