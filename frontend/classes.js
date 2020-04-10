@@ -5,17 +5,14 @@ class Level {
         this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
         
-        this.environment = {'grass': [], 'colliders': [], 'snow': []};
+        this.environment = {};
+        Collider.types.forEach((t) => {
+            this.environment[t] = []; // initialize all environment arrays
+        });
 
-        for (let key in data.environment) {
+        for (let key in data.environment) { // load in all colliders and environment stuff
             data.environment[key].forEach(c => {
-                // console.log(this);
-                if (c.r) {
-                    this.environment[key].push(new ColliderCircle(c.x,c.y,c.r));
-                }
-                if (c.x1) {
-                    this.environment[key].push(new ColliderRect(c.x1,c.y1,c.x2,c.y2));
-                }
+                this.environment[key].push(new Collider(c));
             })
         }
     }
@@ -24,20 +21,22 @@ class Level {
         push();
         rectMode(CORNERS);
         noStroke();
-        fill(environmentColors[addCollider.destination]);
+        // fill(environmentColors[addCollider.destination]);
         for (key in this.environment) {
-            if (key !== "colliders") {
+            if (key !== "colliders") { // draw all except for the colliders
                 this.environment[key].forEach(e => {
                     e.draw(environmentColors[key]);
                 });
             }
         }
-        if (addCollider.shape == "rect" && newCollider.x2) {
-            rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
-        }
-        if (addCollider.shape == "circle" && newCollider.r) {
-            ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        }
+        // if (addCollider.shape == "rect" && newCollider.x2) {
+        //     rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
+        // }
+        // if (addCollider.shape == "circle" && newCollider.r) {
+        //     ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        // }
+        
+
         pop();
     }
 
@@ -49,12 +48,13 @@ class Level {
             c.draw(colliderColor);
         });
         rectMode(CORNERS);
-        if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
-            rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
-        }
-        if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
-            ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        }
+        // if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
+        //     rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
+        // }
+        // if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
+        //     ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        // }
+        
         pop();
     }
 }
@@ -103,21 +103,46 @@ class Track {
 }
 
 class Collider {
-    constructor() {
-        
+    constructor(opts) {
+        if (new.target === Collider) { // if not sure what shape to make
+            let c = {};
+            c.type = opts.type;
+
+            if (opts.shape === "circle") {
+                c.x = opts.x1;
+                c.y = opts.y1;
+                c.r = dist(opts.x1, opts.y1, opts.x2, opts.y2)
+                return new ColliderCircle(c);
+            }
+            
+            if (opts.shape === "rect") {
+                c.x1 = opts.x1;
+                c.y1 = opts.y1;
+                c.x2 = opts.x2;
+                c.y2 = opts.y2;
+                return new ColliderRect(c);
+            }
+        } else { // if shape has been decided yet    
+            for (let key in opts) {
+                this[key] = opts[key];
+            }
+        }
+    }
+
+    static shapes = ['rect', 'circle'];
+    static types = ['grass', 'snow', 'colliders'];
+
+    draw() {
+        console.log('Collider.draw has been called!');
     }
 }
 
-class ColliderCircle {//extends Collider {
-    constructor(x,y,r) {
-        this.x = x,
-        this.y = y,
-        this.r = r
-    }
+class ColliderCircle extends Collider {
     
-    draw(c) {
+    
+    draw() {
         push();
-        fill(c);
+        fill(environmentColors[this.type]);
         ellipse(this.x*scale,this.y*scale,2*this.r*scale);
         pop();
     }
@@ -174,18 +199,18 @@ class ColliderCircle {//extends Collider {
     }
 }
 
-class ColliderRect { //extends Collider {
-    constructor(x1,y1,x2,y2) {
-        this.x1 = x1,
-        this.y1 = y1,
-        this.x2 = x2,
-        this.y2 = y2
-    }
+class ColliderRect extends Collider {
+    // constructor(x1,y1,x2,y2) {
+    //     this.x1 = x1,
+    //     this.y1 = y1,
+    //     this.x2 = x2,
+    //     this.y2 = y2
+    // }
 
-    draw(c) {
+    draw() {
         push();
         rectMode(CORNERS);
-        fill(c);
+        fill(environmentColors[this.type]);
         rect(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
         pop();
     }
@@ -281,7 +306,6 @@ class Bullet {
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
-        console.log(r);
     }
 
     updateInternals(x,y,r){
@@ -372,7 +396,10 @@ class Surface {
         this.collideWithTank = cwt,
         this.collidesWithBullets = cwb,
         this.tanksMakeTracks = tmt,
-        this.friction = f
+        this.friction = f,
+        this.onEnter = () => {
+            player.maxV = this.maxV;
+        };
     }
 }
 
@@ -492,12 +519,14 @@ class Tank {
                     this.onGrass[i] = true
                 }
             });
-            level.environment.snow.forEach(s => {
-                if (s.collideWithPoint(v.x,v.y)) {
-                    // this.onGrass = true
-                    this.onGrass[i] = true
-                }
-            });
+            if (level.environment.snow) {
+                level.environment.snow.forEach(s => {
+                    if (s.collideWithPoint(v.x,v.y)) {
+                        // this.onGrass = true
+                        this.onGrass[i] = true
+                    }
+                });
+            }
         });
 
         let speedCap = maxV;

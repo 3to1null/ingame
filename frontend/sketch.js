@@ -1,5 +1,5 @@
 // #region variable declaration
-state = new StateMachine({ // where to put dis?
+let state = new StateMachine({ // where to put dis?
     init: 'preInit',
     transitions: [
         {name: 'init', from: ['preInit', 'paused'], to: 'paused'},
@@ -61,7 +61,7 @@ let trackLifeSpan = 255;
 let trackFadingPoint = 0.5;
 
 // --- begin of things
-let startingLevel = 0;
+let startingLevel = 1;
 let tankBeginX = 0;
 let tankBeginY = 0;
 let tankBeginR = 0;
@@ -108,14 +108,21 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
-let tracks = [];
 let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
 let level;
-let addCollider = {'destination': "grass", "shape": "rect"};
-let newCollider = {};
+let newCollider = {
+    'empty': true,
+    'shape': Collider.shapes[0],
+    'type': Collider.types[0],
+    'reset': function() {
+        this.empty = true;
+    }
+
+};
+// let grassSurface = new Surface('grass', colors.green, 2, false, false, true, 0);
 
 // #endregion
 
@@ -230,12 +237,12 @@ function removePlayer(id) {
 //#region main game code
 
 function setup() {
-    initColors();
-    createCanvas(0,0).parent('canvasholder');
-    windowResized();
-    rectMode(CENTER);
     bulletSprite = loadImage('src/image/bullet.png');
+    createCanvas(0,0).parent('canvasholder');
     loadLevel(startingLevel);
+    rectMode(CENTER);
+    windowResized();
+    initColors();
 }
 
 function draw() {
@@ -265,6 +272,9 @@ function draw() {
     if (state.is('editingLevel')) {
         image(backgroundImage, 0, 0, width, height);
         level.drawEnvironment();
+        if (!newCollider.empty) {
+            new Collider(newCollider).draw(environmentColors[newCollider.type]);
+        }
         updatePlayer();
         level.drawColliders();
     }
@@ -395,6 +405,15 @@ function cap(x, min, max) {
     return max;
 }
 
+function mod(n, m) {
+    return ((n % m) + m) % m;
+}
+
+function iterate(array, member) { 
+    // returns the next member from array
+    return (array[(array.indexOf(member)+1)%array.length]);
+}
+
 function linearInter(start, end, progress){
     return (end - start) * progress + start;
 }
@@ -406,16 +425,11 @@ function linearInterAngle(start, end, progress){
     return (start + (2 * delta_angle % (Math.PI * 2) - delta_angle) * progress) - Math.PI;
 }
 
-// why you use arrownotation???? is it better? should the others be arrownotation?
-let rotatePointPoint = (point, origin, angle) => {
+function rotatePointPoint(point, origin, angle) {
     return createVector(
         cos(angle) * (point.x - origin.x) - sin(angle) * (point.y - origin.y) + origin.x,
         sin(angle) * (point.x - origin.x) + cos(angle) * (point.y - origin.y) + origin.y
     );
-};
-
-function mod(n, m) {
-    return ((n % m) + m) % m;
 }
 
 function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
@@ -554,25 +568,4 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
     return false;
 }
 
-function drawTracks() {
-    tracks.forEach(t => {
-        t.draw();
-    });
-}
-
-function cleanTracks() {
-    let startCurrentSegment;
-    let endCurrentSegement;
-    let removes = [];
-    for (let i = 0; i<tracks.length-4; i++) {
-        if(collidePointLine(tracks[i+1].x,tracks[i+1].y,tracks[i].x,tracks[i].y,tracks[i+2].x,tracks[i+2].y)) {
-            removes.push(i+1);
-        }
-    }
-    console.log(removes);
-    for (let i = removes.length-1; i >= 0; i--) {
-        tracks.splice(removes[i],1)
-        
-    }    
-}
 //#endregion

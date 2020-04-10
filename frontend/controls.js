@@ -55,14 +55,14 @@ function keyPressed() {
     }
 
     if (keyCode === ESCAPE) {
-        newCollider = {};
+        newCollider.reset();
         //state.done();
     }
 
     if (keyCode == controls.toggleLevelEditing) {
         if (state.is('editingLevel')) {
             console.log(JSON.stringify(level.environment));
-            newCollider = {};
+            newCollider.reset();
             state.done();
         } else {
             state.editLevel();
@@ -70,31 +70,11 @@ function keyPressed() {
     }
 
     if (keyCode == controls.toggleColliderDestination) {
-        // state.editLevel();
-        switch (addCollider.destination) {
-            case "colliders":
-                addCollider.destination = "grass";
-                break;
-            case "grass":
-                addCollider.destination = "snow";
-                break;
-            case "snow":
-                addCollider.destination = "colliders";
-            default:
-                break;
-        }
-        // addCollider.destination = (addCollider.destination === "grass") ? "colliders" : "snow";
-
+        newCollider.type = iterate(Collider.types,newCollider.type);
     }
     
     if (keyCode == controls.toggleColliderShape) {
-        // state.editLevel();
-        if (addCollider.shape == "rect") {
-            newCollider = {'x': newCollider.x1, 'y': newCollider.y1, 'r': dist(newCollider.x1,newCollider.y1,mouseX/scale,mouseY/scale)};
-        } else {
-            newCollider = {'x1': newCollider.x, 'y1': newCollider.y, 'x2': mouseX/scale, 'y2': mouseY/scale}
-        }
-        addCollider.shape = (addCollider.shape === "rect") ? "circle" : "rect";
+        newCollider.shape = iterate(Collider.shapes, newCollider.shape);
     }
 
     switch(controls.changing) {
@@ -148,27 +128,20 @@ function keyPressed() {
 
 function mousePressed() {
     if(state.is('editingLevel')) {
-        if (addCollider.shape == "rect" ) {
-            if (!newCollider.x1) {
-                newCollider = {'x1': mouseX/scale, 'y1': mouseY/scale, 'x2': mouseX/scale, 'y2': mouseY/scale}  
-            } else {
-                level.environment[addCollider.destination].push(new ColliderRect(newCollider.x1,newCollider.y1,newCollider.x2,newCollider.y2));
-                newCollider = {};
-            }
-        }
-        
-        if (addCollider.shape == "circle") {
-            if (!newCollider.x) {
-                newCollider = {'x': mouseX/scale, 'y': mouseY/scale, 'r': 0};
-            } else {
-                level.environment[addCollider.destination].push(new ColliderCircle(newCollider.x,newCollider.y,newCollider.r));
-                newCollider = {};
-            } 
+        if (newCollider.empty) {
+            newCollider.empty = false;
+            newCollider.x1 = mouseX/scale;
+            newCollider.y1 = mouseY/scale;
+            newCollider.x2 = mouseX/scale;
+            newCollider.y2 = mouseY/scale;
+        } else { // newCollider is done
+            level.environment[newCollider.type].push(new Collider(newCollider));
+            newCollider.reset();
         }
     }
     
     if (state.is('game')) {
-        if (mouseY/scale < optionX+optionWidth && mouseX/scale < optionY+optionHeight) { // nts make variable
+        if (mouseY/scale < optionX+optionWidth && mouseX/scale < optionY+optionHeight) {
             state.pause();
         } else if (controls.fireWithMouse) {
             player.fire();
@@ -178,16 +151,10 @@ function mousePressed() {
 
 
 function mouseMoved() {
-    if (addCollider.shape == "rect") {
-        if (newCollider.x1) {
-            newCollider.x2 = cap(mouseX/scale, newCollider.x1, referenceWidth);
-            newCollider.y2 = cap(mouseY/scale, newCollider.y1, referenceHeight);
-        } 
-    }
-
-    if (addCollider.shape == "circle") {
-        if (newCollider.x) {
-            newCollider.r = dist(newCollider.x,newCollider.y,mouseX/scale,mouseY/scale);
+    if (state.is('editingLevel')) {
+        if (!newCollider.empty) {
+            newCollider.x2 = mouseX/scale;
+            newCollider.y2 = mouseY/scale;
         }
     }
 }
