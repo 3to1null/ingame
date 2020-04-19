@@ -566,7 +566,7 @@ class Tank {
             point(bullet.x * scale, bullet.y * scale);
             translate(bullet.x*scale,bullet.y*scale);
             rotate(bullet.r);
-            image(bulletSprite, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
+            image(images.bullet, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
             pop();
         }
     }

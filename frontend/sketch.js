@@ -111,12 +111,19 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
-let images = [];
+let images = [
+    'gear',
+    'bullet',
+    'house1',
+    'house2',
+    'school',
+    'school2',
+    'square',
+];
 let sounds = [
     'boem',
     'shot',
 ];
-let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
@@ -243,7 +250,6 @@ function removePlayer(id) {
 //#region main game code
 
 function setup() {
-    bulletSprite = loadImage('src/image/bullet.png');
     images = loadImages();
     sounds = loadSounds();
     // setVolume(soundVolume);
@@ -408,7 +414,7 @@ function loadSounds() {
 function loadImages() {
     let a = {};
     images.forEach(i => {
-        a[i] = loadImage('src/audio/'+i+'.png');
+        a[i] = loadImage('src/image/'+i+'.png');
     })
     return a;
 }

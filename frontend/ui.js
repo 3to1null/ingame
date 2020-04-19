@@ -37,10 +37,11 @@ function drawUI() {
     rectMode(CORNER);
     fill(UIBackgroundColor);
     rect(optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale);
+    image(images.gear, optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale)
     fill(textColor);
     textSize(fontSize*scale);
     textAlign(LEFT);
-    text(`Level: ${level.title} | Score: ${player.score} | Time left: ${level.timeLeft}`, (optionWidth + buttonMargin)*scale, textY*scale);
+    text(`Level: ${level.title} | Score: ${player.score} | Time left: ${level.timeLeft}`, optionWidth*scale, textY*scale);
     pop();
 }
 
