@@ -4,6 +4,8 @@ class Level {
     constructor(data) {
         this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
+        this.title = data.title;
+        this.timeLeft = roundTime;
         
         this.environment = {};
         Collider.types.forEach((t) => {
