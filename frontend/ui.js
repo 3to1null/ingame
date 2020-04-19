@@ -36,7 +36,7 @@ function drawUI() {
     push();
     rectMode(CORNER);
     fill(UIBackgroundColor);
-    rect(optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale);
+    // rect(optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale);
     image(images.gear, optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale)
     fill(textColor);
     textSize(fontSize*scale);
