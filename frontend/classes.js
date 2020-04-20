@@ -300,7 +300,7 @@ class Bullet {
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
-        sounds.shot.play();
+        // sounds.shot.play();
     }
 
     updateInternals(x,y,r){
@@ -657,7 +657,7 @@ class Player extends Tank {
 
     onReceivedHit(){
         console.log('Got hit!');
-        sounds.boem.play();
+        // sounds.boem.play();
     }
 
     destroy(){

@@ -253,7 +253,7 @@ function removePlayer(id) {
 
 function setup() {
     images = loadImages();
-    sounds = loadSounds();
+    // sounds = loadSounds();
     // setVolume(soundVolume);
     createCanvas(0,0).parent('canvasholder');
     loadLevel(startingLevel);
