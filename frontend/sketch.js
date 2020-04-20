@@ -112,13 +112,15 @@ function initColors() {
 let player; 
 let enemies = [];
 let images = [
-    'gear',
+    'blocks',
+    'bridge',
     'bullet',
-    'house1',
-    'house2',
-    'school',
-    'school2',
+    'farm',
+    'gear',
+    'paris',
+    'pillars',
     'square',
+    // 'streets',
 ];
 let sounds = [
     'boem',
