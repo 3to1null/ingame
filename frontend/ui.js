@@ -73,6 +73,7 @@ function drawButtons() { // nts double calculations
     if (!nameBox) {
         nameBox = createInput((player.name === player.c) ? "" : player.name);
         nameBox.attribute('placeholder', 'Your name');
+        nameBox.attribute('onChange', 'state.done');
         nameBox.input(updateName);
     }
     nameBox.position(buttonX*scale, nameBoxY*scale);
