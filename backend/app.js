@@ -8,10 +8,12 @@ app.listen(8009);
 
 const tickTime = 50;
 const roundTicks = 100 * 20;
+// const roundTicks = 10 * 20;
 const levelAmount = 3;
 
 const state = {
   "players":{},
+  "map": 0,
   "roundTimeRemaining": roundTicks * tickTime
 };
 
@@ -83,6 +85,7 @@ setInterval(() => {
     roundTicksRemaining -= 1;
   }else{
     roundTicksRemaining = roundTicks;
-    io.emit('new_round', Math.floor(Math.random() * levelAmount))
+    state.map = Math.floor(Math.random() * levelAmount);
+    io.emit('new_round', state.map);
   }
 }, tickTime)

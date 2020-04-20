@@ -152,6 +152,8 @@ let currentState = {
 let socket = io(socketLocation);
 
 socket.on('init', (data) => { // first connection
+    console.log(data);
+    loadLevel(data.state.map);
     initPlayers(data);
     isInit = true;
     state.init();
@@ -195,6 +197,9 @@ socket.on('kill', (data) => { // we made a kill!
 
 socket.on('new_round', (data) => {
     loadLevel(data);
+    player.score = 0;
+    player.hp = startHp;
+    player.tracks = [new Track(this.x,this.y,this.r), new Track(this.x,this.y,this.r)];
 });
 
 socket.on('delete', (data) => {
