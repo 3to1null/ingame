@@ -311,14 +311,13 @@ class Bullet {
 
     checkCollisions(){
         let colCheck = (enemy) => {
-            let enemyTankVerticis = [];
+            let enemyTankVerticis = enemy.getVerticis();
             // let o = {'x': enemy.x, 'y': enemy.y}
             let o = enemy.getPos();
-            enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
-            enemyTankVerticis[1] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
-            enemyTankVerticis[2] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
-            enemyTankVerticis[3] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
-
+            // enemyTankVerticis[0] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            // enemyTankVerticis[1] = rotatePointPoint({'x': o.x - tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
+            // enemyTankVerticis[2] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y - tankLength/2}, o, enemy.r)
+            // enemyTankVerticis[3] = rotatePointPoint({'x': o.x + tankWidth/2, 'y':o.y + tankLength/2}, o, enemy.r)
             // DEBUG hitbox
             push();
             stroke(colors['white'])
@@ -346,7 +345,6 @@ class Bullet {
             return collision
         }
 
-
         enemies.forEach((enemy) => {
             if(colCheck(enemy)){
                 console.log('hit!')
@@ -364,6 +362,9 @@ class Bullet {
         if(colCheck(player)){
             // We got hit!
             player.hp -= this.dmg;
+            // if (player.hp < 0) {
+            //     console.log("killed by " + this.)
+            // }
             player.isHit = true;
             this.needsCleanup = true;
         }
@@ -411,9 +412,11 @@ class Tank {
         this.hp = startHp;
         this.name = c;
         this.c = c;
+        this.score = 0;
 
         this.needsCleanup = false;
         this.isHit = false;
+        this.lastHitBy;
         
         this.wasOnSurface = ["default","default","default","default"];
         this.onSurface = ["default","default","default","default"];
@@ -504,6 +507,8 @@ class Tank {
         if(this.hp <= 0){
             this.destroy();
             state.die();
+            console.log('killed by ' + this.lastHitBy);
+            socket.emit('kill', {'killer': this.lastHitBy});
         }
 
         this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
@@ -655,8 +660,9 @@ class Player extends Tank {
         );
     }
 
-    onReceivedHit(){
-        console.log('Got hit!');
+    onReceivedHit(data){
+        console.log(data);
+        this.lastHitBy = data.shotBy;
         // sounds.boem.play();
     }
 
@@ -664,6 +670,7 @@ class Player extends Tank {
         // Needs fancy animation
         // if(gameState !== 3){
             // gameState = 3;
+
             location.reload();
         // }
     }

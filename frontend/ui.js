@@ -28,8 +28,15 @@ let submitY = 250;
 let submitWidth = 300;
 let submitHeight = 50;
 
-let textX = 100;
+let textX = 1110;
+let lineY = 30;
 let textY = fontSize;
+
+// let scoreBoardX = referenceWidth - nameBoxWidth;
+let scoreBoardX = 1110;
+let scoreBoardY = 35;
+let scoreBoardHeight = fontSize;
+let scoreBoardWidth = nameBoxWidth;
 
 
 function drawUI() {
@@ -41,7 +48,19 @@ function drawUI() {
     fill(textColor);
     textSize(fontSize*scale);
     textAlign(LEFT);
-    text(`Level: ${level.title} | Score: ${player.score} | Time left: ${level.timeLeft}`, optionWidth*scale, textY*scale);
+    text(`Time left: ${round(level.timeLeft/1000)}`, textX*scale, textY*scale);
+    stroke(textColor);
+    line(textX*scale, lineY*scale, 1400*scale, lineY*scale)
+    noStroke();
+
+    getPlayersByScore().forEach((p, i) => {
+        if (p.score !== undefined) {
+            fill(colors[p.c]);
+            text(p.score + " | " + p.name, scoreBoardX*scale, (scoreBoardY + scoreBoardHeight*i)*scale, scoreBoardWidth*scale, scoreBoardHeight*scale);
+        }
+
+    });
+
     pop();
 }
 

@@ -157,14 +157,12 @@ socket.on('init', (data) => { // first connection
     state.init();
 });
 
-/*socket.on('new', (data) => { // new player // obsolete
-    addPlayer(data);
-});*/
-
 // --- update from server
 socket.on('update_state', (data) => {
     const now = Date.now()
-    // console.log(data.players)
+    
+    level.timeLeft = data.roundTimeRemaining
+    
     if(Object.keys(data.players).length > enemies.length + 1){
         let enemyIDs = enemies.map(e => e.id);
     }
@@ -186,8 +184,18 @@ socket.on('player_join', (data) => {
 })
 
 socket.on('bullet_hit', (data) => {
-    player.onReceivedHit();
+    //console.log(data);
+    player.onReceivedHit(data);
+});
+
+socket.on('kill', (data) => { // we made a kill!
+    console.log("we did it!");
+    player.score++;
 })
+
+socket.on('new_round', (data) => {
+    loadLevel(data);
+});
 
 socket.on('delete', (data) => {
     console.log("received a delete");
@@ -276,10 +284,10 @@ function draw() {
         updatePlayer();
         updateEnemies();
         level.drawColliders();
-        level.timeLeft--;
+        // level.timeLeft--;
     }
     
-    if (state.is('paused') || state.is('editingControls')) { // options screen
+    if (state.is('paused') || state.is('editingControls')) { // options screend
         background(backgroundColor);
         drawButtons();
         updateCurrentState();
@@ -330,6 +338,7 @@ function updateCurrentState(){
                 const new_y = cap(linearInter(pps['y'], nps['y'], progress), cps.y - max_delta_y, cps.y + max_delta_y);
 
                 currentState.players[key] = {
+                    'id': pps['id'],
                     'x': new_x,
                     'y': new_y,
                     'r': new_r,
@@ -339,10 +348,12 @@ function updateCurrentState(){
                     'c': pps['c'],
                     'name': pps['name'],
                     'bullets': pps['bullets'],
+                    'score': pps['score'],
                 }
-
+                
             }else{ // als currentState.players[key] === undefined
                 currentState.players[key] = {
+                    'id': pps['id'],
                     'x': linearInter(pps['x'], nps['x'], progress),
                     'y': linearInter(pps['y'], nps['y'], progress),
                     'r': linearInter(pps['r'], nps['r'], progress),
@@ -352,6 +363,7 @@ function updateCurrentState(){
                     'hp': nps['hp'],
                     'name': nps['name'],
                     'bullets': nps['bullets'],
+                    'score': nps['score'],
                 }
             }
 
@@ -601,6 +613,11 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
       return true;
     }
     return false;
+}
+
+function getPlayersByScore() {
+    return Object.values(currentState.players).sort((a,b) => {return b.score - a.score});
+    
 }
 
 //#endregion
