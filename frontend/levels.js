@@ -10,27 +10,27 @@ let levels = [
         'environment': {} 
     },
     { // level template
-        'backgroundImage': 'src/image/',
+        'backgroundImage': 'src/image/paris.png',
         'gameRules': {},
         'environment': {}
     },
     { // level template
-        'backgroundImage': 'src/image/',
+        'backgroundImage': 'src/image/farm.png',
         'gameRules': {},
         'environment': {}
     },
     { // level template
-        'backgroundImage': 'src/image/',
+        'backgroundImage': 'src/image/bridge.png',
         'gameRules': {},
         'environment': {}
     },
     { // level template
-        'backgroundImage': 'src/image/',
+        'backgroundImage': 'src/image/pillars.png',
         'gameRules': {},
         'environment': {}
     },
     { // level template
-        'backgroundImage': 'src/image/',
+        'backgroundImage': 'src/image/blocks.png',
         'gameRules': {},
         'environment': {}
     },
