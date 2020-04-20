@@ -4,6 +4,8 @@ class Level {
     constructor(data) {
         this.backgroundImage = data.backgroundImage;
         this.gameRules = data.gameRules;
+        this.title = data.title;
+        this.timeLeft = roundTime;
         
         this.environment = {};
         Collider.types.forEach((t) => {
@@ -564,7 +566,7 @@ class Tank {
             point(bullet.x * scale, bullet.y * scale);
             translate(bullet.x*scale,bullet.y*scale);
             rotate(bullet.r);
-            image(bulletSprite, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
+            image(images.bullet, -bulletWidth/2*scale, -bulletLength/2*scale, bulletWidth*scale, bulletLength*scale);
             pop();
         }
     }

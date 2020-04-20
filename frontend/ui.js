@@ -23,17 +23,25 @@ let controlWidth = 300;
 let controlHeight = 50;
 let controlTextOffset = 0;
 
-
 let submit;
 let submitY = 250;
 let submitWidth = 300;
 let submitHeight = 50;
+
+let textX = 100;
+let textY = fontSize;
+
 
 function drawUI() {
     push();
     rectMode(CORNER);
     fill(UIBackgroundColor);
     rect(optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale);
+    image(images.gear, optionX*scale, optionY*scale, optionWidth*scale, optionHeight*scale)
+    fill(textColor);
+    textSize(fontSize*scale);
+    textAlign(LEFT);
+    text(`Level: ${level.title} | Score: ${player.score} | Time left: ${level.timeLeft}`, optionWidth*scale, textY*scale);
     pop();
 }
 

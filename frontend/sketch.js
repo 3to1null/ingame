@@ -60,6 +60,7 @@ let maxTrackSegmentLength = 12;
 let trackLifeSpan = 255;
 let trackFadingPoint = 0.5;
 
+let roundTime = 3000; // in frames?
 // --- begin of things
 let startingLevel = 1;
 let tankBeginX = 0;
@@ -78,6 +79,7 @@ let buttonColor;
 let grassColor;
 let colliderColor;
 let trackColor;
+let textColor;
 function initColors() {
     colors = {
         'black': color(0,0,0),
@@ -103,17 +105,25 @@ function initColors() {
     hpColor = colors.green;
     UIBackgroundColor = color(51);
     buttonColor = color(61);
+    textColor = colors.white;
 }
 
 // --- instances of things
 let player; 
 let enemies = [];
-let images = [];
+let images = [
+    'gear',
+    'bullet',
+    'house1',
+    'house2',
+    'school',
+    'school2',
+    'square',
+];
 let sounds = [
     'boem',
     'shot',
 ];
-let bulletSprite;
 let backgroundImage;
 
 // --- level stuff
@@ -240,7 +250,6 @@ function removePlayer(id) {
 //#region main game code
 
 function setup() {
-    bulletSprite = loadImage('src/image/bullet.png');
     images = loadImages();
     sounds = loadSounds();
     // setVolume(soundVolume);
@@ -265,6 +274,7 @@ function draw() {
         updatePlayer();
         updateEnemies();
         level.drawColliders();
+        level.timeLeft--;
     }
     
     if (state.is('paused') || state.is('editingControls')) { // options screen
@@ -404,7 +414,7 @@ function loadSounds() {
 function loadImages() {
     let a = {};
     images.forEach(i => {
-        a[i] = loadImage('src/audio/'+i+'.png');
+        a[i] = loadImage('src/image/'+i+'.png');
     })
     return a;
 }
