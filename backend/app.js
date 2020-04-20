@@ -6,13 +6,18 @@ console.log('Starting socket');
 
 app.listen(8009);
 
-const tickTime = 50
+const tickTime = 50;
+const roundTicks = 100 * 20;
+const levelAmount = 3;
 
 const state = {
-  "players":{}
+  "players":{},
+  "roundTimeRemaining": roundTicks * tickTime
 };
 
 const initWaitTime = 1000;
+
+let roundTicksRemaining = roundTicks;
 
 io.on('connection', (socket) => {
   let newPlayer = {
@@ -61,8 +66,19 @@ io.on('connection', (socket) => {
 let lastUpdate;
 setInterval(() => {
   let update = Date.now();
+
   if(update - lastUpdate > tickTime * 1.1){
     console.log(`Spend ${lastUpdate - update}ms on a frame!`)
   }
+
+  state['roundTimeRemaining'] = roundTicksRemaining * tickTime;
+
   io.emit('update_state', state)
+
+  if(roundTicksRemaining > 0){
+    roundTicksRemaining -= 1;
+  }else{
+    roundTicksRemaining = roundTicks;
+    io.emit('new_round', Math.floor(Math.random() * levelAmount))
+  }
 }, tickTime)
