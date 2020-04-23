@@ -111,6 +111,7 @@ class Collider {
             c.type = opts.type;
 
             if (opts.shape === "circle") {
+                c.shape = "circle";
                 c.x = opts.x1;
                 c.y = opts.y1;
                 c.r = dist(opts.x1, opts.y1, opts.x2, opts.y2)
@@ -118,6 +119,7 @@ class Collider {
             }
             
             if (opts.shape === "rect") {
+                c.shape = "rect";
                 c.x1 = opts.x1;
                 c.y1 = opts.y1;
                 c.x2 = opts.x2;
