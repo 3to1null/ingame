@@ -42,13 +42,6 @@ class Level {
             c.draw(colliderColor);
         });
         rectMode(CORNERS);
-        // if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
-        //     rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
-        // }
-        // if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
-        //     ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        // }
-        
         pop();
     }
 }
