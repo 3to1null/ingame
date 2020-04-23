@@ -42,6 +42,13 @@ class Level {
             c.draw(colliderColor);
         });
         rectMode(CORNERS);
+        // if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
+        //     rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
+        // }
+        // if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
+        //     ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
+        // }
+        
         pop();
     }
 }
@@ -97,9 +104,15 @@ class Collider {
 
             if (opts.shape === "circle") {
                 c.shape = "circle";
-                c.x = opts.x1;
-                c.y = opts.y1;
-                c.r = dist(opts.x1, opts.y1, opts.x2, opts.y2)
+                if (opts.r) {
+                    c.x = opts.x;
+                    c.y = opts.y;
+                    c.r = opts.r;
+                } else {
+                    c.x = opts.x1;
+                    c.y = opts.y1;
+                    c.r = dist(opts.x1, opts.y1, opts.x2, opts.y2)
+                }
                 return new ColliderCircle(c);
             }
             
@@ -127,8 +140,17 @@ class Collider {
 }
 
 class ColliderCircle extends Collider {
-    
-    
+    // constructor(c) {
+    //     super(c);
+    //     for (key in c) {
+    //         this[key] = c[key];
+    //     }
+    //     console.log(c);
+    //     this.x = c.x1;
+    //     this.y = c.y1;
+    //     this.r = dist(this.x1,this.y1,this.x2,this.y2);
+    // }
+
     draw() {
         push();
         fill(environmentColors[this.type]);
@@ -189,6 +211,13 @@ class ColliderCircle extends Collider {
 }
 
 class ColliderRect extends Collider {
+    // constructor(c) {
+    //     super(c);
+    //     for (key in c) {
+    //         this[key] = c[key];
+    //     }
+    // }
+
     draw() {
         push();
         rectMode(CORNERS);
