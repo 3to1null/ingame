@@ -104,7 +104,7 @@ class Collider {
 
             if (opts.shape === "circle") {
                 c.shape = "circle";
-                if (opts.r) {
+                if (opts.r) { // lelijk dit
                     c.x = opts.x;
                     c.y = opts.y;
                     c.r = opts.r;
