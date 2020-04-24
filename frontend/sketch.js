@@ -61,6 +61,9 @@ let trackLifeSpan = 255;
 let trackFadingPoint = 0.5;
 
 let roundTime = 3000; // in frames?
+
+let audioDex = 0;
+let maxAudioDex = 10;
 // --- begin of things
 let startingLevel = 1;
 let tankBeginX = 0;
@@ -266,7 +269,7 @@ function removePlayer(id) {
 
 function setup() {
     images = loadImages();
-    // sounds = loadSounds();
+    sounds = loadSounds();
     // setVolume(soundVolume);
     createCanvas(0,0).parent('canvasholder');
     loadLevel(startingLevel);
@@ -423,9 +426,8 @@ function loadLevel(l) {
 
 function loadSounds() {
     let a = {};
-    sounds.forEach((i) => {
-        a[i] = loadSound('src/audio/'+i+'.wav');
-        a[i].setVolume(soundVolume);
+    sounds.forEach((s) => {
+        a[s] = new Sound(s);
     });
     return a;
 }

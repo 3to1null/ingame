@@ -332,7 +332,7 @@ class Bullet {
         this.r = r;
         this.needsCleanup = false;
         this.isPlayerBullet = isPlayerBullet;
-        // sounds.shot.play();
+        sounds.shot.play();
     }
 
     updateInternals(x,y,r){
@@ -695,7 +695,7 @@ class Player extends Tank {
     onReceivedHit(data){
         console.log(data);
         this.lastHitBy = data.shotBy;
-        // sounds.boem.play();
+        sounds.boem.play();
     }
 
     destroy(){
@@ -749,5 +749,21 @@ class Enemy extends Tank {
 
     destroy(){
         // Needs fancy animation
+    }
+}
+
+class Sound {
+    constructor(src) {
+        this.i = 0;
+        this.m = maxAudioDex;
+        this.sounds = [];
+        for (let i = 0; i < this.m; i++) {
+            this.sounds[i] = new Audio(`src/audio/${src}.wav`);
+        }
+    }
+
+    play() {
+        this.sounds[this.i].play();
+        this.i = (this.i+1)%this.m
     }
 }
