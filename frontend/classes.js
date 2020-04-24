@@ -118,10 +118,26 @@ class Collider {
             
             if (opts.shape === "rect") {
                 c.shape = "rect";
-                c.x1 = opts.x1;
-                c.y1 = opts.y1;
-                c.x2 = opts.x2;
-                c.y2 = opts.y2;
+
+                if (opts.x1 < opts.x2) { // fixing stuff that should be fixed in the level editor already
+                    c.x1 = opts.x1;
+                    c.x2 = opts.x2;
+                } else {
+                    c.x1 = opts.x2;
+                    c.x2 = opts.x1;
+                }
+
+                if (opts.y1<opts.y2) {
+                    c.y1 = opts.y1;
+                    c.y2 = opts.y2;
+                } else {
+                    c.y1 = opts.y2;
+                    c.y2 = opts.y1;
+                }
+
+                // c.y1 = opts.y1;
+                // c.x2 = opts.x2;
+                // c.y2 = opts.y2;
                 return new ColliderRect(c);
             }
         } else { // if shape has been decided yet    

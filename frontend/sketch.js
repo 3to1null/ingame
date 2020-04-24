@@ -283,12 +283,12 @@ function draw() {
         image(backgroundImage, 0, 0, width, height);
         // level.drawGrass();
         // drawTracks();
-        level.drawEnvironment();
+        // level.drawEnvironment();
         drawUI();
         updateCurrentState();
         updatePlayer();
         updateEnemies();
-        level.drawColliders();
+        // level.drawColliders();
         // level.timeLeft--;
     }
     
