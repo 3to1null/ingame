@@ -595,13 +595,16 @@ class Tank {
 
     destroy() {
         console.log("destroy!");
+        io
         // bufferStates[0].pla
         // currentState.players[this.id].x = tankBeginX;
         // currentState.players[this.id].y = tankBeginY;
         // currentState.players[this.id].hp = startHp;
-        this.x = tankBeginX;
-        this.y = tankBeginY;
-        this.hp = startHp;
+        // splosions.push(new Animation(animations.splosion, this.x, this.y))
+        // this.v = 0;
+        // this.x = tankBeginX;
+        // this.y = tankBeginY;
+        // this.hp = startHp;
     }
 }
 
@@ -696,7 +699,14 @@ class Player extends Tank {
     }
 
     destroy() {
-        super.destroy();
+        socket.emit('destroy', {'x':this.x,'y':this.y});
+        
+        this.v = 0;
+        this.x = tankBeginX;
+        this.y = tankBeginY;
+        this.hp = startHp;
+        
+        // super.destroy();
         //state.respawn();
     }
 }
@@ -754,5 +764,25 @@ class Sound {
     play() {
         this.sounds[this.i].play();
         this.i = (this.i+1)%this.m
+    }
+}
+
+class Animation {
+    constructor(a, x, y) {
+        this.a = a.clone();
+        // this.a.looping = false;
+        this.a.frameDelay = 2;
+
+        this.x = x;
+        this.y = y;
+        this.done = false;
+    }
+
+    playOnce() {
+        if (!this.done && this.a.getFrame() !== this.a.images.length-1) {
+            animation(this.a, this.x*scale, this.y*scale);
+        } else {
+            this.done = true;
+        }
     }
 }

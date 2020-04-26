@@ -114,6 +114,8 @@ function initColors() {
 // --- instances of things
 let player; 
 let enemies = [];
+let splosions = [];
+
 let images = [
     'blocks',
     'bridge',
@@ -125,10 +127,19 @@ let images = [
     'square',
     // 'streets',
 ];
+let animations = [
+    {
+        'name' : 'splosion',
+        'firstFile' : 'src/image/splosion/splosion0.png',
+        'lastFile' : 'src/image/splosion/splosion16.png',
+    }
+];
+
 let sounds = [
     'boem',
     'shot',
 ];
+
 let backgroundImage;
 
 // --- level stuff
@@ -196,6 +207,10 @@ socket.on('bullet_hit', (data) => {
 socket.on('kill', (data) => { // we made a kill!
     console.log("we did it!");
     player.score++;
+})
+
+socket.on('splosion', (data) => {
+    splosions.push(new Animation(animations.splosion, data.x, data.y))
 })
 
 socket.on('new_round', (data) => {
@@ -269,6 +284,7 @@ function removePlayer(id) {
 
 function setup() {
     images = loadImages();
+    animations = loadAnimations();
     sounds = loadSounds();
     // setVolume(soundVolume);
     createCanvas(0,0).parent('canvasholder');
@@ -279,6 +295,8 @@ function setup() {
 }
 
 function draw() {
+
+    
     if (state.is('preInit')) {return;}
     
     if (state.is('game')) { // main game loop
@@ -291,6 +309,7 @@ function draw() {
         updateCurrentState();
         updatePlayer();
         updateEnemies();
+        drawSplosions();
         // level.drawColliders();
         // level.timeLeft--;
     }
@@ -312,6 +331,9 @@ function draw() {
         updatePlayer();
         level.drawColliders();
     }
+
+    //animation(animations.splosion);
+
 }
 //#endregion
 
@@ -443,6 +465,14 @@ function loadImages() {
     let a = {};
     images.forEach(i => {
         a[i] = loadImage('src/image/'+i+'.png');
+    })
+    return a;
+}
+
+function loadAnimations() {
+    let a = {};
+    animations.forEach(i => {
+        a[i.name] = loadAnimation(i.firstFile, i.lastFile);
     })
     return a;
 }
@@ -632,6 +662,12 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
 function getPlayersByScore() {
     return Object.values(currentState.players).sort((a,b) => {return b.score - a.score});
     
+}
+
+function drawSplosions() {
+    splosions.forEach(s => {
+        s.playOnce();
+    });
 }
 
 //#endregion

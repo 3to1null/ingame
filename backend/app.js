@@ -59,6 +59,10 @@ io.on('connection', (socket) => {
     io.to(data.killer).emit('kill', data);
   });
 
+  socket.on('destroy', (data) => {
+    io.emit('splosion', data); // tell everyone to add splosion
+  })
+
   socket.on('disconnect', (reason) => {
     console.log(`${socket.id} closed connection for reason: ${reason}.`)
     io.emit('delete', {
