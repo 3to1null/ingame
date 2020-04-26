@@ -340,10 +340,17 @@ function updateCurrentState(){
                 //console.log(progress, new_tr);
 
                 const max_delta_x = abs(cos(new_r) * max(cps.v, pps.v, nps.v));
-                const new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
-
                 const max_delta_y = abs(sin(new_r) * max(cps.v, pps.v, nps.v));
-                const new_y = cap(linearInter(pps['y'], nps['y'], progress), cps.y - max_delta_y, cps.y + max_delta_y);
+                
+                let new_y, new_x;
+
+                if (nps.x === tankBeginX && nps.y === tankBeginY) {
+                    new_x = tankBeginX;
+                    new_y = tankBeginY;
+                } else {
+                    new_x = cap(linearInter(pps['x'], nps['x'], progress), cps.x - max_delta_x, cps.x + max_delta_x);
+                    new_y = cap(linearInter(pps['y'], nps['y'], progress), cps.y - max_delta_y, cps.y + max_delta_y);
+                }
 
                 currentState.players[key] = {
                     'id': pps['id'],

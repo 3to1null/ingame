@@ -416,21 +416,6 @@ class Bullet {
 
 }
 
-class Surface {
-    constructor(n,c,v,cwt,cwb,tmt,f) {
-        this.n = n,
-        this.c = c,
-        this.maxV = v,
-        this.collideWithTank = cwt,
-        this.collidesWithBullets = cwb,
-        this.tanksMakeTracks = tmt,
-        this.friction = f,
-        this.onEnter = () => {
-            player.maxV = this.maxV;
-        };
-    }
-}
-
 class Tank {
     constructor(id, c, x, y, r, v, tr) {
         this.id = id;
@@ -538,7 +523,7 @@ class Tank {
     update() {
         if(this.hp <= 0){
             this.destroy();
-            state.die();
+            //state.die();
             console.log('killed by ' + this.lastHitBy);
             socket.emit('kill', {'killer': this.lastHitBy});
         }
@@ -607,6 +592,17 @@ class Tank {
             pop();
         }
     }
+
+    destroy() {
+        console.log("destroy!");
+        // bufferStates[0].pla
+        // currentState.players[this.id].x = tankBeginX;
+        // currentState.players[this.id].y = tankBeginY;
+        // currentState.players[this.id].hp = startHp;
+        this.x = tankBeginX;
+        this.y = tankBeginY;
+        this.hp = startHp;
+    }
 }
 
 class Player extends Tank {
@@ -617,13 +613,13 @@ class Player extends Tank {
         }
         if (keyIsDown(controls.right)){
             this.rotate(rotIncrease);
-            }
-            if (keyIsDown(controls.up)){
-                this.v += acceleration;
-            }
-            if (keyIsDown(controls.down)){
-                this.v -= acceleration;
-            }
+        }
+        if (keyIsDown(controls.up)){
+            this.v += acceleration;
+        }
+        if (keyIsDown(controls.down)){
+            this.v -= acceleration;
+        }
         //} // remove id controls are still enabled during paused screen
 
         this.tr = atan2(mouseY - this.y * scale, mouseX - this.x * scale)
@@ -657,6 +653,7 @@ class Player extends Tank {
 
         socket.emit('update_player', this); // this works apearantly?
 
+        
     }
 
     updateBullets(){
@@ -693,18 +690,14 @@ class Player extends Tank {
     }
 
     onReceivedHit(data){
-        console.log(data);
+        // console.log(data);
         this.lastHitBy = data.shotBy;
         sounds.boem.play();
     }
 
-    destroy(){
-        // Needs fancy animation
-        // if(gameState !== 3){
-            // gameState = 3;
-
-            location.reload();
-        // }
+    destroy() {
+        super.destroy();
+        //state.respawn();
     }
 }
 
@@ -745,10 +738,6 @@ class Enemy extends Tank {
         textAlign(CENTER);
         fill(colors[this.c]);
         text(this.name, this.x * scale,(this.y - nameOffset) * scale);
-    }
-
-    destroy(){
-        // Needs fancy animation
     }
 }
 

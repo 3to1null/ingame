@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
     io.to(data['hit']).emit('bullet_hit', {'shotBy': socket.id})
   });
 
-  socket.on('kill', (data) => {
+  socket.on('kill', (data) => { // when a kill has been detected, send a message to the killer to confirm they have a kill
     io.to(data.killer).emit('kill', data);
   });
 
