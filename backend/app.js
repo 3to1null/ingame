@@ -26,15 +26,11 @@ io.on('connection', (socket) => {
     "x": 0,
     "y": 0,
     "r": 0,
-<<<<<<< HEAD
-    "v": 10
-=======
     "v": 0,
     "tr": 0,
     "c": "red",
     'name': "unnamed",
     'bullets': [],
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
   };
 
   state["players"][socket.id] = newPlayer
@@ -88,9 +84,6 @@ setInterval(() => {
   state['roundTimeRemaining'] = roundTicksRemaining * tickTime;
 
   io.emit('update_state', state)
-<<<<<<< HEAD
-}, 50)
-=======
 
   if(roundTicksRemaining > 0){
     roundTicksRemaining -= 1;
@@ -100,4 +93,3 @@ setInterval(() => {
     io.emit('new_round', state.map);
   }
 }, tickTime)
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
