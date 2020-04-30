@@ -258,7 +258,7 @@ class Collider {
         }
     }
 
-    static shapes = ['rect', 'circle'];
+    static shapes = ['rect', 'circle', 'line'];
     static types = ['grass', 'snow', 'colliders'];
 
     draw() {
