@@ -342,7 +342,10 @@ function draw() {
         updatePlayer();
         level.drawColliders();
         //tree.southEast.draw();
-        tree.draw();
+        tree.query(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2, []).forEach(c => {
+            c.draw();
+        });
+        text(`New Collider: type = ${newCollider.type}, shape = ${newCollider.shape}`, referenceWidth/2*scale, 20*scale);
 
     }
 

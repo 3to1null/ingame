@@ -251,6 +251,18 @@ class Collider {
                 // c.y2 = opts.y2;
                 return new ColliderRect(c);
             }
+
+            if (opts.shape === "brush") {
+                // console.log("this shouldn't happen")
+                // c.type = "circle";
+                c.shape = "circle";
+                
+                c.x = opts.x2,
+                c.y = opts.y2,
+                c.r = Collider.brushSize;
+                return new ColliderCircle(c);
+            }
+
         } else { // if shape has been decided yet    
             for (let key in opts) {
                 this[key] = opts[key];
@@ -258,11 +270,13 @@ class Collider {
         }
     }
 
-    static shapes = ['rect', 'circle', 'line'];
+    static shapes = ['rect', 'circle', 'brush'];
     static types = ['grass', 'snow', 'colliders'];
+    static brushSize = 10;
 
     draw() {
         console.log('Collider.draw has been called!');
+        console.log(this)
     }
 }
 
