@@ -42,6 +42,7 @@ let targetAspectRatio = 16/9;
 
 let tankWidth = 15;
 let tankLength = 20;
+let tankCollisionRad = 30;
 let barrelLength = 20;
 let barrelWidth = 3;
 let barrelOffSet = 5;
@@ -64,6 +65,7 @@ let roundTime = 3000; // in frames?
 
 let audioDex = 0;
 let maxAudioDex = 10;
+
 // --- begin of things
 let startingLevel = 1;
 let tankBeginX = 0;
@@ -149,7 +151,8 @@ let newCollider = {
     'shape': Collider.shapes[0],
     'type': Collider.types[0]
 };
-
+let tree;
+let treeDepth = 3;
 let soundVolume = 0.05;
 
 
@@ -288,6 +291,8 @@ function setup() {
     sounds = loadSounds();
     // setVolume(soundVolume);
     createCanvas(0,0).parent('canvasholder');
+    // tree = new GridCell(referenceWidth/2, referenceHeight/2,referenceWidth/2, referenceHeight/2);
+    // tree.init(3);
     loadLevel(startingLevel);
     rectMode(CENTER);
     windowResized();
@@ -310,6 +315,12 @@ function draw() {
         updatePlayer();
         updateEnemies();
         drawSplosions();
+        // tree.draw();
+        // rectMode(CENTER)
+        // rect(player.x*scale,player.y*scale, 30*scale,30*scale);
+        // tree.query(player.x, player.y, 30, 30, []).forEach(g => {
+        //     g.draw();
+        // });
         // level.drawColliders();
         // level.timeLeft--;
     }
@@ -330,6 +341,9 @@ function draw() {
         }
         updatePlayer();
         level.drawColliders();
+        //tree.southEast.draw();
+        tree.draw();
+
     }
 
     //animation(animations.splosion);
