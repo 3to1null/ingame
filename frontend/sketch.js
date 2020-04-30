@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-const socketLocation = 'timklein.tk:8009';
-
-let maxV = 3;
-=======
 // #region variable declaration
 let state = new StateMachine({ // where to put dis?
     init: 'preInit',
@@ -115,7 +110,6 @@ function initColors() {
     buttonColor = color(61);
     textColor = colors.white;
 }
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
 
 // --- instances of things
 let player; 
@@ -146,8 +140,6 @@ let sounds = [
     'shot',
 ];
 
-<<<<<<< HEAD
-=======
 let backgroundImage;
 
 // --- level stuff
@@ -164,7 +156,6 @@ let soundVolume = 0.05;
 // #endregion
 
 //#region server receives
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
 let bufferStates = [];
 let currentState = {
     "players": {},
@@ -355,22 +346,9 @@ function updateCurrentState(){
         return;
     }
 
-<<<<<<< HEAD
-    const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp; // verschil tussen twee updates
-    //const tickTime = 32;
-    currentState.timestamp += 1000 / frameRate(); // advance one frame in seconds
-    //const progress = (currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1;
-    progress = (currentState.timestamp - bufferStates[1].timestamp) / tickTime;
-    if (progress > 1) {
-        debugger;
-    }
-    console.log(`tickTime: ${tickTime}, Progress: ${progress}, frameTime: ${1000 / frameRate()}`);
-    //console.log(progress);
-=======
     const tickTime = bufferStates[1].timestamp - bufferStates[0].timestamp;
     currentState.timestamp += 1000 / frameRate();
     const progress = cap((currentState.timestamp - bufferStates[0].timestamp) / tickTime - 1,0,1);
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
     // console.log(bufferStates[1].timestamp, bufferStates[0].timestamp);
 
     for (const [key, nps] of Object.entries(bufferStates[1].players)){
@@ -470,80 +448,12 @@ function debugPlayers() {
     }
 }
 
-<<<<<<< HEAD
-function drawTank(x,y,r,c) {
-    translate(x, y);
-    rotate(r);
-    stroke(c);
-    rect(0, 0, 20, 15);
-    rect(10,0,15,3);
-    rotate(-r);
-    translate(-x, -y);
-}
-
-
-class Player {
-    constructor(id, c, x, y, r, v) {
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.v = v;
-        this.c = c;
-
-        this.draw = function() {
-/*            */
-            if (bufferStates.length > 1 ) {
-                //drawTank(bufferStates[0]['players'][socket.id].x, bufferStates[0]['players'][socket.id].y, bufferStates[0]['players'][socket.id].r, color(255,0,0));
-                //drawTank(bufferStates[1]['players'][socket.id].x, bufferStates[1]['players'][socket.id].y, bufferStates[1]['players'][socket.id].r, color(0,0,255));
-                drawTank(currentState['players'][socket.id].x, currentState['players'][socket.id].y, currentState['players'][socket.id].r, color(0,255,0));
-                drawTank(this.x, this.y, this.r, color(255,255,255));
-            } else {
-            console.log(bufferStates.length);
-            translate(this.x, this.y);
-            rotate(this.r);
-            stroke(this.c);
-            rect(0, 0, 20, 15);
-            rect(10,0,15,3);
-            rotate(-this.r);
-            translate(-this.x, -this.y);
-            }
-        };
-
-        this.update = function() {
-            if (inputs[0])
-                this.rotate(-0.05);
-            if (inputs[1])
-                this.rotate(0.05);
-            if (inputs[2])
-                this.v += 0.1;
-            if (inputs[3])
-                this.v -= 0.1;
-
-            this.v = cap(this.v, 0, maxV);
-            
-            this.x += cos(this.r)*this.v;
-            this.y += sin(this.r)*this.v;
-            
-            this.x = cap(this.x, 0, width);
-            this.y = cap(this.y, 0, height);
-
-            socket.emit('update_player', {
-                'x': this.x,
-                'y': this.y,
-                'r': this.r,
-                'v': this.v
-            }
-  )
-
-=======
 function loadLevel(l) {
     level = new Level(levels[l]);
     backgroundImage = loadImage(level['backgroundImage']);
     console.log(level);
     
 }
->>>>>>> 80d8b0eb438a57778ee2d9c796e1373a8c26cfb6
 
 function loadSounds() {
     let a = {};
