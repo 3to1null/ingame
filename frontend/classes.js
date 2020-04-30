@@ -12,9 +12,13 @@ class Level {
             this.environment[t] = []; // initialize all environment arrays
         });
 
+        tree = new GridCell(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2);
+        tree.init(treeDepth);
+
         for (let key in data.environment) { // load in all colliders and environment stuff
             data.environment[key].forEach(c => {
-                this.environment[key].push(new Collider(c));
+                // this.environment[key].push(new Collider(c));
+                tree.insert(new Collider(c));
             })
         }
     }
@@ -50,6 +54,113 @@ class Level {
         // }
         
         pop();
+    }
+}
+
+class GridCell {
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.drawMe = false;
+        this.drawMembers = true;
+
+        this.capacity = 4;
+        this.members = [];
+        this.devided = false
+    }
+
+    init(level) {
+        if (level === 0) {
+            return;
+        } else {
+            this.devide();
+            this.northEast.init(level-1);
+            this.northWest.init(level-1);
+            this.southEast.init(level-1);
+            this.southWest.init(level-1);
+        }
+    }
+
+    devide() {
+        this.devided = true;
+        this.northEast = new GridCell(this.x + this.w/2, this.y - this.h/2, this.w/2, this.h/2);
+        this.northWest = new GridCell(this.x - this.w/2, this.y - this.h/2, this.w/2, this.h/2);
+        this.southEast = new GridCell(this.x + this.w/2, this.y + this.h/2, this.w/2, this.h/2);
+        this.southWest = new GridCell(this.x - this.w/2, this.y + this.h/2, this.w/2, this.h/2);
+    }
+
+    insert(collider) {
+        if (collider.collideWithRect(this.x, this.y, this.w, this.h)) { // collider is inside this gridcell
+            if (this.devided) { // if there are deeper levels
+                this.northEast.insert(collider);
+                this.northWest.insert(collider);
+                this.southEast.insert(collider);
+                this.southWest.insert(collider);    
+            } else {
+                this.members.push(collider);
+            }
+        }
+    
+        // if (collider.collideWithRect(this.x, this.y, this.w, this.h)) { // collider is inside this gridcell
+        //     if (!this.devided) { // there are no deeper levels
+        //         if (this.members.length < this.capacity) { // there is room for this collider
+        //             this.members.push(collider);
+        //             return; // no need to do anything more
+        //         } else { // no room, so devide!
+        //             this.devide();
+        //         }
+        //     } //else { // there deeper levels
+        //     this.northEast.insert(collider);
+        //     this.northWest.insert(collider);
+        //     this.southEast.insert(collider);
+        //     this.southWest.insert(collider);
+        //     //}
+        // }
+    }
+
+    query(x, y, w, h, array) {
+        if (!( // does this work?
+            this.x + this.w < x - w ||
+            this.x - this.w > x + w ||
+            this.y + this.h < y - h ||
+            this.y - this.h > y + h 
+        )) { // als range van toepassing is
+            if (this.devided) { // nog niet de diepste laag
+                return array.concat(
+                        this.northEast.query(x,y,w,h,array),
+                        this.northWest.query(x,y,w,h,array),
+                        this.southEast.query(x,y,w,h,array),
+                        this.southWest.query(x,y,w,h,array),
+                        this.members
+                    );
+            } else { // dit is de diepste laag;
+                // console.log(this.members);
+                return array.concat(this.members);
+            }
+        } else {
+            return [];
+        }
+    }
+
+    draw() {
+        
+        rectMode(CENTER);
+        stroke(255);
+        noFill();
+        rect(this.x*scale,this.y*scale,this.w*2*scale,this.h*2*scale);
+        if (this.drawMe) {
+            this.members.forEach(m => {
+                m.draw();
+            })
+        }
+        if (this.devided && this.drawMembers) {
+            this.northEast.draw();
+            this.northWest.draw();
+            this.southEast.draw();
+            this.southWest.draw();
+        }
     }
 }
 
@@ -195,29 +306,30 @@ class ColliderCircle extends Collider {
                 newPos.y = tankCenter.y + dy;
                 CHANGED = true;
             }
-            /*
-            // get next vertex in list if we've hit the end, wrap around to 0
-            next = current+1;
-            // if (next == tankVerticis.length) next = 0;
-            next = next%tankVerticis.length;
-            
-            // get the PVectors at our current position this makes our if statement a little cleaner
-            let vc = tankVerticis[current];
-            let vn = tankVerticis[next]; 
-            
-            // check for collision between the circle and a line formed between the two tankVerticis
-            let collision = collideLineCircle(vc.x,vc.y, vn.x,vn.y, this.x, this.y, this.r*2);
-            if (collision){
-                console.log('collison!!!') 
-                return this.collissionPoint(tankCenter.x,tankCenter.y);
-              }*/
         }
-        // otherwise, after all that, return false
-       if (CHANGED) {
+        if (CHANGED) {
             return newPos;
         }
         return false;
-        
+    }
+
+    collideWithRect(x,y,w,h) { // does this work?
+        stroke(255);
+        background(0);
+        fill(colors.red);
+        ellipse(this.x*scale,this.y*scale,this.r*scale);
+
+        line(this.x*scale, this.y*scale, (x+w)*scale, (y+h)*scale);
+        line(this.x*scale, this.y*scale, (x+w)*scale, (y-h)*scale);
+        line(this.x*scale, this.y*scale, (x-w)*scale, (y+h)*scale);
+        line(this.x*scale, this.y*scale, (x-w)*scale, (y-h)*scale);
+        noStroke();
+        return !(
+            this.x + this.r < x - w ||
+            this.x - this.r > x + w ||
+            this.y + this.r < y - h ||
+            this.y - this.r > y + h 
+        );
     }
 
     collissionPoint(x,y) {
@@ -227,13 +339,6 @@ class ColliderCircle extends Collider {
 }
 
 class ColliderRect extends Collider {
-    // constructor(c) {
-    //     super(c);
-    //     for (key in c) {
-    //         this[key] = c[key];
-    //     }
-    // }
-
     draw() {
         push();
         rectMode(CORNERS);
@@ -320,6 +425,15 @@ class ColliderRect extends Collider {
             newPos.y = this.y2;
         }  
         return newPos;
+    }
+
+    collideWithRect(x, y, w, h) { // does this work?
+        return !(
+            this.x1 > x + w ||
+            this.x2 < x - w ||
+            this.y1 > y + h ||
+            this.y2 < y - h
+        );
     }
 }
 
@@ -437,6 +551,7 @@ class Tank {
         
         this.wasOnSurface = ["default","default","default","default"];
         this.onSurface = ["default","default","default","default"];
+        this.collisionRad = tankCollisionRad;
 
         this.bullets = {};
         this.tracks = [new Track(this.x,this.y,this.r), new Track(this.x,this.y,this.r)];
@@ -530,20 +645,21 @@ class Tank {
 
         this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
         this.getVerticis().forEach((v, i) => {
-            level.environment.grass.forEach(g => {
-                if (g.collideWithPoint(v.x,v.y)) {
+            // level.environment.grass.forEach(g => {
+            tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(g => {
+                if ((g.type === "grass" || g.type === "snow") && g.collideWithPoint(v.x,v.y)) {
                     // this.onGrass = true
                     this.onGrass[i] = true
                 }
             });
-            if (level.environment.snow) {
-                level.environment.snow.forEach(s => {
-                    if (s.collideWithPoint(v.x,v.y)) {
-                        // this.onGrass = true
-                        this.onGrass[i] = true
-                    }
-                });
-            }
+            // if (level.environment.snow) {
+            //     level.environment.snow.forEach(s => {
+            //         if (s.collideWithPoint(v.x,v.y)) {
+            //             // this.onGrass = true
+            //             this.onGrass[i] = true
+            //         }
+            //     });
+            // }
         });
 
         let speedCap = maxV;
@@ -639,7 +755,11 @@ class Player extends Tank {
         point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
         point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
         pop();
-        level.environment.colliders.forEach(c => {
+        // level.environment.colliders.forEach(c => {
+        tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(c => {
+            if (c.type !== "colliders") { // nts improve
+                return;
+            }
             // if (c.collideWithPoint(this.x, this.y)) {
             //     let newPos = c.collissionPoint(this.x, this.y);
             //     this.x = newPos.x;
