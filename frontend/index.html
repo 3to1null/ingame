@@ -2,17 +2,33 @@
 <html>
     <head>
         <title>ingame</title>
+        <style>
+            
+            body{margin:0;overflow:hidden}
+            
+            input[type="text"], button {
+                border: none;
+                box-sizing: border-box;
+                background: transparent;
+                text-align: center;
+                padding: 5px;
+                color: white;
+            }
+
+        </style>
     </head>
     <body>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.dev.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
+        <script src='state-machine.js'></script>
         <script src="sketch.js" defer></script>
-        <div id="canvasholder"></div>
-        <h1>debugging</h1>
-        <p id="1"></p>
-        <p id="2"></p>
-        <p id="3"></p>
-        <p id="4"></p>
+        <script src="controls.js"></script>
+        <script src="classes.js"></script>
+        <script src="levels.js"></script>
+        <script src="p5game.js"></script>
+        <script src="config.js"></script>
+        <script src="ui.js"></script>
+        <div id="canvasholder"></div>        
     </body>
 </html>
 
