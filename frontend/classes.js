@@ -326,6 +326,28 @@ class ColliderCircle extends Collider {
             return {'x': this.x + dx*factor,'y': this.y + dy*factor}
         }
         return false;
+
+        /*let newPos = tankCenter;
+        let CHANGED = false;
+        // go through each of the vertices in the list
+        // for (let current=0; current<tankVerticis.length; current++) {
+        for (let current=0; current<tankVerticis.length; current++) {
+            let cv = tankVerticis[current];
+            // if the corner collides with the circle, push the vertex out
+            if (this.collideWithPoint(cv.x, cv.y)) {
+                let cp = this.collissionPoint(cv.x, cv.y);
+                let dx =  cp.x - cv.x;
+                let dy =  cp.y - cv.y;
+                // return {'x': tankCenter.x - dx, 'y': tankCenter.y - dy};
+                newPos.x = tankCenter.x + dx;
+                newPos.y = tankCenter.y + dy;
+                CHANGED = true;
+            }
+        }
+        if (CHANGED) {
+            return newPos;
+        }
+        return false;*/
     }
 
     collideWithRect(x,y,w,h) { // does this work?
