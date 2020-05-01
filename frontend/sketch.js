@@ -188,7 +188,7 @@ socket.on('update_state', (data) => {
 
     bufferStates.push({
         'players': data['players'],
-        'timestamp': now
+        'timestamp': now // bufferState[2] (wordt bufferState[1]) is hetzelfde als currentState timestam
     })
     
     currentState.timestamp = now; 
@@ -340,9 +340,11 @@ function draw() {
             new Collider(newCollider).draw(environmentColors[newCollider.type]);
         }
         updatePlayer();
-        level.drawColliders();
-        //tree.southEast.draw();
         tree.draw();
+        // tree.query(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2, []).forEach(c => {
+            // c.draw();
+        // });
+        text(`New Collider: type = ${newCollider.type}, shape = ${newCollider.shape}`, referenceWidth/2*scale, 20*scale);
 
     }
 
@@ -352,6 +354,8 @@ function draw() {
 //#endregion
 
 //#region functions
+
+let progress;
 
 function updateCurrentState(){
     if(bufferStates.length < 2){
@@ -520,6 +524,8 @@ function iterate(array, member) {
 }
 
 function linearInter(start, end, progress){
+    
+//    return (end - start) * cap(progress, 0 ,1) + start;
     return (end - start) * progress + start;
 }
 
@@ -671,6 +677,15 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
       return true;
     }
     return false;
+}
+
+function collidePointRect(px,py,x1,y1,x2,y2) {
+    return !(
+        x1 > px ||
+        px > x2 ||
+        y1 > py ||
+        py > y2
+    )
 }
 
 function getPlayersByScore() {

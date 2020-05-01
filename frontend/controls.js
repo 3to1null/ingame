@@ -61,7 +61,8 @@ function keyPressed() {
 
     if (keyCode == controls.toggleLevelEditing) {
         if (state.is('editingLevel')) {
-            console.log(JSON.stringify(level.environment));
+            // console.log(JSON.stringify(level.environment));
+            console.log(JSON.stringify(tree.query(referenceWidth/2,referenceHeight/2, referenceWidth/2,referenceHeight/2, [])));
             newCollider.empty = true;
             state.done();
         } else {
@@ -128,14 +129,16 @@ function keyPressed() {
 
 function mousePressed() {
     if(state.is('editingLevel')) {
+
         if (newCollider.empty) {
             newCollider.empty = false;
             newCollider.x1 = mouseX/scale;
             newCollider.y1 = mouseY/scale;
             newCollider.x2 = mouseX/scale;
             newCollider.y2 = mouseY/scale;
-        } else { // newCollider is done
-            level.environment[newCollider.type].push(new Collider(newCollider));
+        } else if (newCollider.type !== 'brush') { // newCollider is done AND BRUSH ISNT ACTIVE
+            // level.environment[newCollider.type].push(new Collider(newCollider));
+            tree.insert(new Collider(newCollider));
             newCollider.empty = true;
         }
     }
@@ -153,6 +156,16 @@ function mousePressed() {
 function mouseMoved() {
     if (state.is('editingLevel')) {
         if (!newCollider.empty) {
+            // console.log("not empty");
+            if (newCollider.shape === "brush") {
+                if (dist(newCollider.x1, newCollider.y1, newCollider.x2, newCollider.y2) > Collider.brushSize/2) { // als er genoeg ruimte is tussen bollen
+                    tree.insert(new Collider(newCollider));
+                    newCollider.x1 = newCollider.x2;
+                    newCollider.y1 = newCollider.y2;
+                }
+                // console.log(new Collider({'shape': 'circle', 'type': 'colliders', 'x': mouseX/scale, 'y': mouseY/scale, 'r': 10}));
+                // newCollider.empty = true;
+            }
             newCollider.x2 = mouseX/scale;
             newCollider.y2 = mouseY/scale;
         }

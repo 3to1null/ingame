@@ -7,7 +7,8 @@ console.log('Starting socket');
 app.listen(8009);
 
 const tickTime = 50;
-const roundTicks = 100 * 20;
+const roundTicks = 1000 * 20;
+// const roundTicks = 100 * 20;
 // const roundTicks = 10 * 20;
 const levelAmount = 3;
 
