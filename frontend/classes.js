@@ -317,51 +317,24 @@ class ColliderCircle extends Collider {
     }
 
     collideWithTank(tankVerticis, tankCenter){
-        let newPos = tankCenter;
-        let CHANGED = false;
-        // go through each of the vertices in the list
-        // for (let current=0; current<tankVerticis.length; current++) {
-        for (let current=0; current<tankVerticis.length; current++) {
-            let cv = tankVerticis[current];
-            // if the corner collides with the circle, push the vertex out
-            if (this.collideWithPoint(cv.x, cv.y)) {
-                let cp = this.collissionPoint(cv.x, cv.y);
-                let dx =  cp.x - cv.x;
-                let dy =  cp.y - cv.y;
-                // return {'x': tankCenter.x - dx, 'y': tankCenter.y - dy};
-                newPos.x = tankCenter.x + dx;
-                newPos.y = tankCenter.y + dy;
-                CHANGED = true;
-            }
-        }
-        if (CHANGED) {
-            return newPos;
+        let tankR = dist(tankCenter.x, tankCenter.y, tankVerticis[0].x, tankVerticis[0].y);
+        if (dist(tankCenter.x, tankCenter.y, this.x, this.y) < this.r + tankR) { // collision!
+            let dx = tankCenter.x - this.x;
+            let dy = tankCenter.y - this.y;
+
+            let factor = (this.r + tankR)/dist(tankCenter.x, tankCenter.y, this.x, this.y); // geheel/deel
+            return {'x': this.x + dx*factor,'y': this.y + dy*factor}
         }
         return false;
     }
 
     collideWithRect(x,y,w,h) { // does this work?
-        stroke(255);
-        background(0);
-        fill(colors.red);
-        ellipse(this.x*scale,this.y*scale,this.r*scale);
-
-        line(this.x*scale, this.y*scale, (x+w)*scale, (y+h)*scale);
-        line(this.x*scale, this.y*scale, (x+w)*scale, (y-h)*scale);
-        line(this.x*scale, this.y*scale, (x-w)*scale, (y+h)*scale);
-        line(this.x*scale, this.y*scale, (x-w)*scale, (y-h)*scale);
-        noStroke();
         return !(
             this.x + this.r < x - w ||
             this.x - this.r > x + w ||
             this.y + this.r < y - h ||
             this.y - this.r > y + h 
         );
-    }
-
-    collissionPoint(x,y) {
-        let factor = this.r/dist(this.x, this.y, x, y); 
-        return {'x': this.x + (x-this.x)*factor, 'y': this.y + (y-this.y)*factor};
     }
 }
 
@@ -379,7 +352,76 @@ class ColliderRect extends Collider {
     }
 
     collideWithTank(tankVerticis, tankCenter){
-        let next = 0;
+        // lu | mu | ru
+        // lm | mm | rm
+        // ld | md | rd
+        
+        let factor, dx, dy;
+        let position = "";
+        let tankR = dist(tankCenter.x, tankCenter.y, tankVerticis[0].x, tankVerticis[0].y);
+
+        if (tankCenter.x < this.x1) {
+            position += "l";
+        } else if (tankCenter.x > this.x2) {
+            position += "r"
+        } else {
+            position += "m"
+        }
+
+        if (tankCenter.y < this.y1) {
+            position += "u";
+        } else if (tankCenter.y > this.y2) {
+            position += "d"
+        } else {
+            position += "m"
+        }
+
+        switch (position) {
+            case "lu":
+                factor = tankR/dist(tankCenter.x, tankCenter.y, this.x1, this.y1); // geheel/deel
+                if (factor < 1) {return false;} // no collision
+                dx = tankCenter.x - this.x1;
+                dy = tankCenter.y - this.y1;
+                return{'x':this.x1 + dx*factor, 'y': this.y1 + dy*factor}
+            case "ru":
+                factor = tankR/dist(tankCenter.x, tankCenter.y, this.x2, this.y1);
+                if (factor < 1) {return false;} // no collision
+                dx = tankCenter.x - this.x2;
+                dy = tankCenter.y - this.y1;
+                return{'x':this.x2 + dx*factor, 'y': this.y1 + dy*factor}
+            case "rd":
+                factor = tankR/dist(tankCenter.x, tankCenter.y, this.x2, this.y2);
+                if (factor < 1) {return false;} // no collision
+                dx = tankCenter.x - this.x2;
+                dy = tankCenter.y - this.y2;
+                return{'x':this.x2 + dx*factor, 'y': this.y2 + dy*factor}
+            case "ld":
+                factor = tankR/dist(tankCenter.x, tankCenter.y, this.x1, this.y2);
+                if (factor < 1) {return false;} // no collision
+                dx = tankCenter.x - this.x1;
+                dy = tankCenter.y - this.y2;
+                return{'x':this.x1 + dx*factor, 'y': this.y2 + dy*factor}
+            case "mu":
+                if (tankCenter.y < this.y1 - tankR) {return false;} // no collision
+                return {'x': tankCenter.x, 'y': this.y1 - tankR}
+            case "rm":
+                if (tankCenter.x > this.x2 + tankR) {return false;} // no collision
+                return {'x': this.x2 + tankR, 'y': tankCenter.y}
+            case "md":
+                if (tankCenter.y > this.y2 + tankR) {return false;} // no collision
+                return {'x': tankCenter.x, 'y': this.y2 + tankR}
+            case "lm":
+                if (tankCenter.x < this.x1 - tankR) {return false;} // no collision
+                return {'x': this.x1 - tankR, 'y': tankCenter.y}
+            case "mm":
+                console.log("mm");
+                return false;
+            default:
+                console.log("this isn't supposed to be possible error code 911");
+                return false
+        }
+        
+        /*let next = 0;
         for (let current=0; current<tankVerticis.length; current++) {
             // get next vertex in list if we've hit the end, wrap around to 0
             next = current+1;
@@ -433,7 +475,7 @@ class ColliderRect extends Collider {
             
         }
         
-        return false;
+        return false;*/
     }
 
     collissionPoint(x,y) {
