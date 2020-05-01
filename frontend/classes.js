@@ -7,53 +7,32 @@ class Level {
         this.title = data.title;
         this.timeLeft = roundTime;
         
-        this.environment = {};
-        Collider.types.forEach((t) => {
-            this.environment[t] = []; // initialize all environment arrays
-        });
+        // this.environment = {};
+        // Collider.types.forEach((t) => {
+        //     this.environment[t] = []; // initialize all environment arrays
+        // });
 
         tree = new GridCell(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2);
         tree.init(treeDepth);
 
-        for (let key in data.environment) { // load in all colliders and environment stuff
-            data.environment[key].forEach(c => {
-                // this.environment[key].push(new Collider(c));
-                tree.insert(new Collider(c));
-            })
-        }
+        // for (let key in data.environment) { // load in all colliders and environment stuff
+        //     data.environment[key].forEach(c => {
+        //         // this.environment[key].push(new Collider(c));
+        //         tree.insert(new Collider(c));
+        //     })
+        // }
+        console.log(data);
+        data.environment.forEach(e => {
+            tree.insert(new Collider(e));
+        });
+
     }
     
     drawEnvironment() {
-        push();
-        rectMode(CORNERS);
-        noStroke();
-        // fill(environmentColors[addCollider.destination]);
-        for (key in this.environment) {
-            if (key !== "colliders") { // draw all except for the colliders
-                this.environment[key].forEach(e => {
-                    e.draw(environmentColors[key]);
-                });
-            }
-        }
-        pop();
-    }
-
-    drawColliders() {
-        push();
-        noStroke();
-        fill(colliderColor);
-        this.environment.colliders.forEach(c => {
-            c.draw(colliderColor);
+        tree.query(referenceWidth/2,referenceHeight/2,referenceWidth/2,referenceHeight/2,[]).forEach(c => {
+        // tree.query(player.x, player.y, 100, 100,[]).forEach(c => {
+            c.quickDraw();
         });
-        rectMode(CORNERS);
-        // if (addCollider.shape == "rect" && addCollider.destination == "colliders" && newCollider.x2) {
-        //     rect(newCollider.x1*scale,newCollider.y1*scale,newCollider.x2*scale,newCollider.y2*scale);
-        // }
-        // if (addCollider.shape == "circle" && addCollider.destination == "colliders" && newCollider.r) {
-        //     ellipse(newCollider.x*scale, newCollider.y*scale, 2*newCollider.r*scale);
-        // }
-        
-        pop();
     }
 }
 
@@ -63,8 +42,8 @@ class GridCell {
         this.y = y;
         this.w = w;
         this.h = h;
-        this.drawMe = false;
-        this.drawMembers = true;
+        this.drawGrid = true;
+        this.drawMembers = false;
 
         this.capacity = 4;
         this.members = [];
@@ -150,12 +129,12 @@ class GridCell {
         stroke(255);
         noFill();
         rect(this.x*scale,this.y*scale,this.w*2*scale,this.h*2*scale);
-        if (this.drawMe) {
+        if (this.drawMembers) {
             this.members.forEach(m => {
                 m.draw();
             })
         }
-        if (this.devided && this.drawMembers) {
+        if (this.devided && this.drawGrid) {
             this.northEast.draw();
             this.northWest.draw();
             this.southEast.draw();
@@ -208,42 +187,42 @@ class Track {
 }
 
 class Collider {
-    constructor(opts) {
+    constructor(o) {
         if (new.target === Collider) { // if not sure what shape to make
             let c = {};
-            c.type = opts.type;
+            c.type = o.type;
 
-            if (opts.shape === "circle") {
+            if (o.shape === "circle") {
                 c.shape = "circle";
-                if (opts.r) { // lelijk dit
-                    c.x = opts.x;
-                    c.y = opts.y;
-                    c.r = opts.r;
+                if (o.r) { // lelijk dit
+                    c.x = o.x;
+                    c.y = o.y;
+                    c.r = o.r;
                 } else {
-                    c.x = opts.x1;
-                    c.y = opts.y1;
-                    c.r = dist(opts.x1, opts.y1, opts.x2, opts.y2)
+                    c.x = o.x1;
+                    c.y = o.y1;
+                    c.r = dist(o.x1, o.y1, o.x2, o.y2)
                 }
                 return new ColliderCircle(c);
             }
             
-            if (opts.shape === "rect") {
+            if (o.shape === "rect") {
                 c.shape = "rect";
 
-                if (opts.x1 < opts.x2) { // fixing stuff that should be fixed in the level editor already
-                    c.x1 = opts.x1;
-                    c.x2 = opts.x2;
+                if (o.x1 < o.x2) { // fixing stuff that should be fixed in the level editor already
+                    c.x1 = o.x1;
+                    c.x2 = o.x2;
                 } else {
-                    c.x1 = opts.x2;
-                    c.x2 = opts.x1;
+                    c.x1 = o.x2;
+                    c.x2 = o.x1;
                 }
 
-                if (opts.y1<opts.y2) {
-                    c.y1 = opts.y1;
-                    c.y2 = opts.y2;
+                if (o.y1<o.y2) {
+                    c.y1 = o.y1;
+                    c.y2 = o.y2;
                 } else {
-                    c.y1 = opts.y2;
-                    c.y2 = opts.y1;
+                    c.y1 = o.y2;
+                    c.y2 = o.y1;
                 }
 
                 // c.y1 = opts.y1;
@@ -252,31 +231,66 @@ class Collider {
                 return new ColliderRect(c);
             }
 
-            if (opts.shape === "brush") {
+            if (o.shape === "brush") {
                 // console.log("this shouldn't happen")
                 // c.type = "circle";
                 c.shape = "circle";
                 
-                c.x = opts.x2,
-                c.y = opts.y2,
+                c.x = o.x2,
+                c.y = o.y2,
                 c.r = Collider.brushSize;
                 return new ColliderCircle(c);
             }
 
+            if (o.shape === "line") {
+                c.shape = "line";
+                
+                
+                c.x1 = o.x1;
+                c.y1 = o.y1;
+                c.x2 = o.x2;
+                c.y2 = o.y2;
+
+                
+                c.len = dist(o.x1, o.y1, o.x2, o.y2);
+                c.res = Collider.brushSize;
+                c.steps = c.len/c.res;
+                c.dx = (c.x2 - c.x1)/c.steps 
+                c.dydx = (c.y2 - c.y1)/(c.x2-c.x1);
+                // c.dxdy = (c.x2-c.x1)/(c.y2 - c.y1);
+                // c.dx = sqrt(c.res^2 + )
+                c.points = [];
+                for(let i = 0; i<c.steps; i++) {
+                    c.points.push(new Collider({
+                        'x': c.x1 + i * c.dx,
+                        'y': c.y1 + i * c.dydx * c.dx,
+                        'r': c.res,
+                        'type': c.type,
+                        'shape': 'circle'
+                    }));
+                    // c.points.push(new Collider('type': c.type))
+                }
+                return new ColliderLine(c);
+            }
+
         } else { // if shape has been decided yet    
-            for (let key in opts) {
-                this[key] = opts[key];
+            for (let key in o) {
+                this[key] = o[key];
             }
         }
     }
 
-    static shapes = ['rect', 'circle', 'brush'];
+    static shapes = ['rect', 'circle', 'brush', 'line'];
     static types = ['grass', 'snow', 'colliders'];
-    static brushSize = 10;
+    static brushSize = 5;
+
+    quickDraw() {
+        this.draw();
+    }
 
     draw() {
         console.log('Collider.draw has been called!');
-        console.log(this)
+        // console.log(this)
     }
 }
 
@@ -291,7 +305,6 @@ class ColliderCircle extends Collider {
     //     this.y = c.y1;
     //     this.r = dist(this.x1,this.y1,this.x2,this.y2);
     // }
-
     draw() {
         push();
         fill(environmentColors[this.type]);
@@ -449,6 +462,48 @@ class ColliderRect extends Collider {
             this.y2 < y - h
         );
     }
+}
+
+class ColliderLine extends Collider {
+
+    quickDraw() {
+        push();
+        stroke(environmentColors[this.type]);
+        strokeWeight(this.res*scale*2);
+        line(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
+        pop();
+    }
+
+    draw() {
+        // console.log(this.points);
+        this.points.forEach(p => {
+            p.draw();
+        })
+    }
+
+
+    collideWithPoint(x,y) {
+        return (collidePointLine(x,y,this.x1,this.y1,this.x2,this.y2));
+    }
+
+    collideWithTank(tankVerticis, tankCenter) {
+        let returnValue = false;
+        this.points.forEach(p => {
+            returnValue = p.collideWithTank(tankVerticis, tankCenter) || returnValue;
+        });
+        return returnValue;
+        // return false;
+    }
+
+    collideWithRect(x,y,w,h) {
+        return collideLineRect(this.x1,this.y1,this.x2,this.y2,x-w,y-h,2*w,2*h, false) || collidePointRect(this.x1,this.y1, x-w,y-h,x+w,y+h) || collidePointRect(this.x2,this.y2, x-w,y-h,x+w,y+h)
+    }
+
+    collisionPoint(x,y) {
+        console.log('linecollision!');
+        return {'x': x, 'y': y};
+    }
+
 }
 
 class Bullet {

@@ -340,11 +340,10 @@ function draw() {
             new Collider(newCollider).draw(environmentColors[newCollider.type]);
         }
         updatePlayer();
-        level.drawColliders();
-        //tree.southEast.draw();
-        tree.query(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2, []).forEach(c => {
-            c.draw();
-        });
+        tree.draw();
+        // tree.query(referenceWidth/2, referenceHeight/2, referenceWidth/2, referenceHeight/2, []).forEach(c => {
+            // c.draw();
+        // });
         text(`New Collider: type = ${newCollider.type}, shape = ${newCollider.shape}`, referenceWidth/2*scale, 20*scale);
 
     }
@@ -678,6 +677,15 @@ function collideLineCircle(x1,  y1,  x2,  y2,  cx,  cy,  diameter) {
       return true;
     }
     return false;
+}
+
+function collidePointRect(px,py,x1,y1,x2,y2) {
+    return !(
+        x1 > px ||
+        px > x2 ||
+        y1 > py ||
+        py > y2
+    )
 }
 
 function getPlayersByScore() {

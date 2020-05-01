@@ -61,7 +61,8 @@ function keyPressed() {
 
     if (keyCode == controls.toggleLevelEditing) {
         if (state.is('editingLevel')) {
-            console.log(JSON.stringify(level.environment));
+            // console.log(JSON.stringify(level.environment));
+            console.log(JSON.stringify(tree.query(referenceWidth/2,referenceHeight/2, referenceWidth/2,referenceHeight/2, [])));
             newCollider.empty = true;
             state.done();
         } else {
@@ -157,7 +158,7 @@ function mouseMoved() {
         if (!newCollider.empty) {
             // console.log("not empty");
             if (newCollider.shape === "brush") {
-                if (dist(newCollider.x1, newCollider.y1, newCollider.x2, newCollider.y2) > Collider.brushSize) { // als er genoeg ruimte is tussen bollen
+                if (dist(newCollider.x1, newCollider.y1, newCollider.x2, newCollider.y2) > Collider.brushSize/2) { // als er genoeg ruimte is tussen bollen
                     tree.insert(new Collider(newCollider));
                     newCollider.x1 = newCollider.x2;
                     newCollider.y1 = newCollider.y2;
