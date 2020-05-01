@@ -420,7 +420,7 @@ class ColliderRect extends Collider {
                 console.log("this isn't supposed to be possible error code 911");
                 return false
         }
-        
+
         /*let next = 0;
         for (let current=0; current<tankVerticis.length; current++) {
             // get next vertex in list if we've hit the end, wrap around to 0
@@ -517,7 +517,6 @@ class ColliderLine extends Collider {
     }
 
     draw() {
-        // console.log(this.points);
         this.points.forEach(p => {
             p.draw();
         })
@@ -636,6 +635,13 @@ class Bullet {
         if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
             this.needsCleanup = true;
         }
+        tree.query(this.x,this.y,10,10,[]).forEach(c => {
+            if (c.type === "colliders") {
+                if (c.collideWithPoint(this.x,this.y)) {
+                    this.needsCleanup = true
+                }
+            }
+        })
         // console.log(this);
     };
 
