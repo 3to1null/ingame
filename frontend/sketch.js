@@ -161,8 +161,8 @@ let soundVolume = 0.05;
 //#region server receives
 let bufferStates = [];
 let currentState = {
-    "players": {},
-    "timestamp": Date.now()
+    players: {},
+    timestamp: Date.now()
 };
 
 // --- make connection
@@ -518,6 +518,10 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+function dot(x1,y1,x2,y2) {
+    return x1*x2+y1*y2;
+}
+
 function iterate(array, member) { 
     // returns the next member from array
     return (array[(array.indexOf(member)+1)%array.length]);
@@ -561,8 +565,8 @@ function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
       //}
       //if(calcIntersection){
         intersection = {
-          "x":intersectionX,
-          "y":intersectionY
+          x: intersectionX,
+          y: intersectionY
         }
         return intersection;
       }else{
@@ -571,8 +575,8 @@ function collideLineLine(x1, y1, x2, y2, x3, y3, x4, y4,calcIntersection) {
     }
     if(calcIntersection){
       intersection = {
-        "x":false,
-        "y":false
+        x: false,
+        y: false
       }
       return intersection;
     }
