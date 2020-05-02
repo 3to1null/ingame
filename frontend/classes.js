@@ -209,7 +209,7 @@ class Collider {
             if (o.shape === "rect") {
                 c.shape = "rect";
 
-                if (o.x1 < o.x2) { // fixing stuff that should be fixed in the level editor already
+                if (o.x1 < o.x2) {
                     c.x1 = o.x1;
                     c.x2 = o.x2;
                 } else {
@@ -224,18 +224,11 @@ class Collider {
                     c.y1 = o.y2;
                     c.y2 = o.y1;
                 }
-
-                // c.y1 = opts.y1;
-                // c.x2 = opts.x2;
-                // c.y2 = opts.y2;
                 return new ColliderRect(c);
             }
 
             if (o.shape === "brush") {
-                // console.log("this shouldn't happen")
-                // c.type = "circle";
                 c.shape = "circle";
-                
                 c.x = o.x2,
                 c.y = o.y2,
                 c.r = Collider.brushSize;
@@ -244,35 +237,13 @@ class Collider {
 
             if (o.shape === "line") {
                 c.shape = "line";
-                
-                
                 c.x1 = o.x1;
                 c.y1 = o.y1;
                 c.x2 = o.x2;
                 c.y2 = o.y2;
-
-                
                 c.len = dist(o.x1, o.y1, o.x2, o.y2);
-                c.res = Collider.brushSize;
-                c.steps = c.len/c.res;
-                c.dx = (c.x2 - c.x1)/c.steps 
-                c.dydx = (c.y2 - c.y1)/(c.x2-c.x1);
-                // c.dxdy = (c.x2-c.x1)/(c.y2 - c.y1);
-                // c.dx = sqrt(c.res^2 + )
-                c.points = [];
-                for(let i = 0; i<c.steps; i++) {
-                    c.points.push(new Collider({
-                        'x': c.x1 + i * c.dx,
-                        'y': c.y1 + i * c.dydx * c.dx,
-                        'r': c.res,
-                        'type': c.type,
-                        'shape': 'circle'
-                    }));
-                    // c.points.push(new Collider('type': c.type))
-                }
                 return new ColliderLine(c);
             }
-
         } else { // if shape has been decided yet    
             for (let key in o) {
                 this[key] = o[key];
@@ -404,37 +375,37 @@ class ColliderRect extends Collider {
                 if (factor < 1) {return false;} // no collision
                 dx = tankCenter.x - this.x1;
                 dy = tankCenter.y - this.y1;
-                return{'x':this.x1 + dx*factor, 'y': this.y1 + dy*factor}
+                return{x:this.x1 + dx*factor, y: this.y1 + dy*factor}
             case "ru":
                 factor = tankR/dist(tankCenter.x, tankCenter.y, this.x2, this.y1);
                 if (factor < 1) {return false;} // no collision
                 dx = tankCenter.x - this.x2;
                 dy = tankCenter.y - this.y1;
-                return{'x':this.x2 + dx*factor, 'y': this.y1 + dy*factor}
+                return{x:this.x2 + dx*factor, y: this.y1 + dy*factor}
             case "rd":
                 factor = tankR/dist(tankCenter.x, tankCenter.y, this.x2, this.y2);
                 if (factor < 1) {return false;} // no collision
                 dx = tankCenter.x - this.x2;
                 dy = tankCenter.y - this.y2;
-                return{'x':this.x2 + dx*factor, 'y': this.y2 + dy*factor}
+                return{x:this.x2 + dx*factor, y: this.y2 + dy*factor}
             case "ld":
                 factor = tankR/dist(tankCenter.x, tankCenter.y, this.x1, this.y2);
                 if (factor < 1) {return false;} // no collision
                 dx = tankCenter.x - this.x1;
                 dy = tankCenter.y - this.y2;
-                return{'x':this.x1 + dx*factor, 'y': this.y2 + dy*factor}
+                return{x:this.x1 + dx*factor, y: this.y2 + dy*factor}
             case "mu":
                 if (tankCenter.y < this.y1 - tankR) {return false;} // no collision
-                return {'x': tankCenter.x, 'y': this.y1 - tankR}
+                return {x: tankCenter.x, y: this.y1 - tankR}
             case "rm":
                 if (tankCenter.x > this.x2 + tankR) {return false;} // no collision
-                return {'x': this.x2 + tankR, 'y': tankCenter.y}
+                return {x: this.x2 + tankR, y: tankCenter.y}
             case "md":
                 if (tankCenter.y > this.y2 + tankR) {return false;} // no collision
-                return {'x': tankCenter.x, 'y': this.y2 + tankR}
+                return {x: tankCenter.x, y: this.y2 + tankR}
             case "lm":
                 if (tankCenter.x < this.x1 - tankR) {return false;} // no collision
-                return {'x': this.x1 - tankR, 'y': tankCenter.y}
+                return {x: this.x1 - tankR, y: tankCenter.y}
             case "mm":
                 console.log("mm");
                 return false;
@@ -529,44 +500,33 @@ class ColliderRect extends Collider {
 }
 
 class ColliderLine extends Collider {
-
-    quickDraw() {
-        push();
-        stroke(environmentColors[this.type]);
-        strokeWeight(this.res*scale*2);
-        line(this.x1*scale,this.y1*scale,this.x2*scale,this.y2*scale);
-        pop();
-    }
-
     draw() {
-        this.points.forEach(p => {
-            p.draw();
-        })
+        line(this.x1*scale, this.y1*scale, this.x2*scale, this.y2*scale);
     }
 
+    closestPoint(x,y) {
+        let t = cap(((x - this.x1) * (this.x2 - this.x1) + (y - this.y1) * (this.y2 - this.y1)) / this.len**2,0,1);
+        let projectionX = this.x1 + t*(this.x2-this.x1);
+        let projectionY = this.y1 + t*(this.y2-this.y1);
+        return {x:projectionX,y:projectionY}
+    }
 
     collideWithPoint(x,y) {
         return (collidePointLine(x,y,this.x1,this.y1,this.x2,this.y2));
     }
 
     collideWithTank(tankVerticis, tankCenter) {
-        let returnValue = false;
-        this.points.forEach(p => {
-            returnValue = p.collideWithTank(tankVerticis, tankCenter) || returnValue;
-        });
-        return returnValue;
-        // return false;
+        let tankR = dist(tankCenter.x, tankCenter.y, tankVerticis[0].x, tankVerticis[0].y);
+        let cp = this.closestPoint(tankCenter.x,tankCenter.y);
+        let ds = dist(tankCenter.x,tankCenter.y,cp.x,cp.y); // delta spatium
+        if (ds>tankR){return false} // no collision
+        let factor = tankR/ds;
+        return {x:cp.x + factor*(tankCenter.x-cp.x),y:cp.y + factor*(tankCenter.y-cp.y)}
     }
 
     collideWithRect(x,y,w,h) {
         return collideLineRect(this.x1,this.y1,this.x2,this.y2,x-w,y-h,2*w,2*h, false) || collidePointRect(this.x1,this.y1, x-w,y-h,x+w,y+h) || collidePointRect(this.x2,this.y2, x-w,y-h,x+w,y+h)
     }
-
-    collisionPoint(x,y) {
-        console.log('linecollision!');
-        return {'x': x, 'y': y};
-    }
-
 }
 
 class Bullet {
