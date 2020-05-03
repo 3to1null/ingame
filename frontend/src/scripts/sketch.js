@@ -100,6 +100,7 @@ function initColors() {
         'colliders': colors.red,
         'grass': colors.green,
         'snow': colors.white,
+        'shield': colors.blue,
     }
     backgroundColor = color('#222');
     trackColor = color("#964B00");
