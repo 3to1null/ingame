@@ -31,7 +31,7 @@ class Level {
     drawEnvironment() {
         tree.query(referenceWidth/2,referenceHeight/2,referenceWidth/2,referenceHeight/2,[]).forEach(c => {
         // tree.query(player.x, player.y, 100, 100,[]).forEach(c => {
-            c.quickDraw();
+            c.draw();
         });
     }
 }
@@ -151,7 +151,7 @@ class Track {
     draw() {
         this.points.forEach((p,i,a) => {
             
-            if (p.d && i < a.length-1) {
+            if (p.d && i < a.length-1) { //if not the last
                 push();
                 let life = p.l/trackLifeSpan/trackFadingPoint;
                 trackColor.setAlpha(cap(life, 0, 1)*255);
@@ -171,10 +171,17 @@ class Track {
         });
     }
 
-    addPoint(x,y,r,d) {
+    addPoint(x,y,r) {
         let pl = this.points.length;
-        let np = {'x':x,'y':y,'r':r, 'd':d, 'l': trackLifeSpan};
-        
+        let np = {'x':x,'y':y,'r':r, 'd':false, 'l': trackLifeSpan};
+        tree.query(x,y,0,0,[]).forEach(c => {
+            if (Collider.makesTracks.indexOf(c.type) !== -1) {
+                if (c.collideWithPoint(x,y)) {
+                    np.d = true;
+                }
+            }
+        })
+
         if (pl < 3) {
             this.points.push(np);
         } else if (dist(this.points[pl-2].x, this.points[pl-2].y, np.x, np.y) < maxTrackSegmentLength) {
@@ -252,16 +259,16 @@ class Collider {
     }
 
     static shapes = ['rect', 'circle', 'brush', 'line'];
-    static types = ['grass', 'snow', 'colliders'];
-    static brushSize = 5;
 
-    quickDraw() {
-        this.draw();
-    }
+    static types = ['grass', 'snow', 'colliders'];
+    static makesTracks = ['grass', 'snow'];
+    static collidesWithTank = ['colliders'];
+    static collidesWithBullets = ['colliders'];
+
+    static brushSize = 5;
 
     draw() {
         console.log('Collider.draw has been called!');
-        // console.log(this)
     }
 }
 
@@ -650,6 +657,7 @@ class Tank {
         
         this.wasOnSurface = ["default","default","default","default"];
         this.onSurface = ["default","default","default","default"];
+        this.onGrass = [0,0,0,0]
         this.collisionRad = tankCollisionRad;
 
         this.bullets = {};
@@ -742,24 +750,10 @@ class Tank {
             socket.emit('kill', {'killer': this.lastHitBy});
         }
 
-        this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
-        this.getVerticis().forEach((v, i) => {
-            // level.environment.grass.forEach(g => {
-            tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(g => {
-                if ((g.type === "grass" || g.type === "snow") && g.collideWithPoint(v.x,v.y)) {
-                    // this.onGrass = true
-                    this.onGrass[i] = true
-                }
-            });
-            // if (level.environment.snow) {
-            //     level.environment.snow.forEach(s => {
-            //         if (s.collideWithPoint(v.x,v.y)) {
-            //             // this.onGrass = true
-            //             this.onGrass[i] = true
-            //         }
-            //     });
-            // }
-        });
+
+        this.doCollisions();
+
+        
 
         let speedCap = maxV;
         if (this.upgrades.superSpeed) {
@@ -773,9 +767,23 @@ class Tank {
         this.y = cap(this.y,0,referenceHeight);
     }
 
+    doCollisions() {
+        // console.log("sanityCheck")
+        // this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
+        this.getVerticis().forEach((v, i) => {
+            // level.environment.grass.forEach(g => {
+            tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(g => {
+                if ((g.type === "grass" || g.type === "snow") && g.collideWithPoint(v.x,v.y)) {
+                    // this.onGrass = true
+                    // this.onGrass[i] = true
+                }
+            });
+        });
+    }
+
     makeTracks() {
         for (let i = 1; i <3; i++) {            
-            this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
+            this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r);
         }
     }
 
@@ -845,17 +853,43 @@ class Player extends Tank {
         super.update(); // Tank.update() function
 
         // --- collisions:
-        let tankVerticis = this.getVerticis();
+        // this.doCollisions();
         // DEBUG hitbox
-        push();
-        stroke(colors['white'])
-        point(tankVerticis[0].x * scale, tankVerticis[0].y * scale);
-        point(tankVerticis[1].x * scale, tankVerticis[1].y * scale);
-        point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
-        point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
-        pop();
+        // push();
+        // stroke(colors['white'])
+        // point(tankVerticis[0].x * scale, tankVerticis[0].y * scale);
+        // point(tankVerticis[1].x * scale, tankVerticis[1].y * scale);
+        // point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
+        // point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
+        // pop();
         // level.environment.colliders.forEach(c => {
+        // tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(c => {
+        //     if (c.type !== "colliders") { // nts improve
+        //         return;
+        //     }
+        //     // if (c.collideWithPoint(this.x, this.y)) {
+        //     //     let newPos = c.collissionPoint(this.x, this.y);
+        //     //     this.x = newPos.x;
+        //     //     this.y = newPos.y;
+        //     // }
+        //     let tankLevelCol = c.collideWithTank(tankVerticis, this.getPos());
+        //     if (tankLevelCol){
+        //         this.x = tankLevelCol.x;
+        //         this.y = tankLevelCol.y;
+        //     }
+        // });
+
+        this.updateBullets();
+
+        socket.emit('update_player', this); // this works apearantly?
+
+        
+    }
+
+    doCollisions() {
+        super.doCollisions();
         tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(c => {
+            let tankVerticis = this.getVerticis();
             if (c.type !== "colliders") { // nts improve
                 return;
             }
@@ -870,12 +904,6 @@ class Player extends Tank {
                 this.y = tankLevelCol.y;
             }
         });
-
-        this.updateBullets();
-
-        socket.emit('update_player', this); // this works apearantly?
-
-        
     }
 
     updateBullets(){
