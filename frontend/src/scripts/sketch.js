@@ -34,6 +34,8 @@ let rotIncrease = 0.05;
 let bulletSpeed = 5;
 let bulletDamage = 10;
 
+let grassSpeed = 1;
+
 // --- size of things
 let scale = 1; // this is for a screen of referenceWidth x referenceHeight
 let referenceWidth = 1280

@@ -206,6 +206,10 @@ class Collider {
             if (Collider.collidesWithBullets.indexOf(c.type) !== -1) {
                 c.collidesWithBullets = true;
             } else {c.collidesWithBullets = false}
+
+            if (c.type === 'grass') {
+                c.maxV = grassSpeed;
+            }
             
 
             if (o.shape === "circle") {
@@ -361,7 +365,13 @@ class ColliderRect extends Collider {
     }
 
     collideWithPoint(x,y) {
-        return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+        // return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+        return !(
+            x < this.x1 ||
+            y < this.y1 ||
+            x > this.x2 ||
+            y > this.y2 
+        )
     }
 
     collideWithCircle(x,y,r) {
@@ -440,8 +450,9 @@ class ColliderRect extends Collider {
             case "lm":
                 if (tankCenter.x < this.x1 - tankR) {return false;} // no collision
                 return {x: this.x1 - tankR, y: tankCenter.y}
-            case "mm":
-                console.log("mm");
+                case "mm":
+                    return tankCenter;
+                // console.log("mm");
                 return false;
             default:
                 console.log("this isn't supposed to be possible error code 911");
@@ -790,17 +801,7 @@ class Tank {
             socket.emit('kill', {'killer': this.lastHitBy});
         }
 
-
-        // this.doCollisions();
-
-        
-
-        let speedCap = maxV;
-        if (this.upgrades.superSpeed) {
-            speedCap = superMaxV;
-            this.upgrades.superSpeed--;
-        }
-        this.v = cap(this.v,0,speedCap);
+        this.v = cap(this.v,0,maxV);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
@@ -875,12 +876,23 @@ class Player extends Tank {
         super.update(); // Tank.update() function
 
         tree.query(this.x,this.y,this.collisionRad,this.collisionRad,[]).forEach(c => {
-            if (c.collidesWithTank) {
-                let newPos = c.collideWithTank(this.getVerticis(), this.getPos());
-                if (newPos){
-                    this.x = newPos.x;
-                    this.y = newPos.y;
+            if (c.collideWithTank(this.getVerticis(),this.getPos())) { // if we collide with this collider
+                if (c.collidesWithTank) { // if tanks collide with this type of collider
+                    let newPos = c.collideWithTank(this.getVerticis(), this.getPos());
+                    if (newPos){
+                        this.x = newPos.x;
+                        this.y = newPos.y;
+                    }
                 }
+                // if (c.maxV) { circular hitbox makes this verry nasty
+                // if (c.collideWithPoint(player.x,player.y)) {
+                    // console.log("joe")
+                    // this.v = cap(this.v, 0, c.maxV);
+                // }
+            }
+            if (c.maxV && c.collideWithPoint(player.x,player.y)) {
+                // console.log("joe")
+                this.v = cap(this.v, 0, c.maxV);
             }
         });
         
