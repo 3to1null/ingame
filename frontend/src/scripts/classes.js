@@ -31,7 +31,7 @@ class Level {
     drawEnvironment() {
         tree.query(referenceWidth/2,referenceHeight/2,referenceWidth/2,referenceHeight/2,[]).forEach(c => {
         // tree.query(player.x, player.y, 100, 100,[]).forEach(c => {
-            c.quickDraw();
+            c.draw();
         });
     }
 }
@@ -151,7 +151,7 @@ class Track {
     draw() {
         this.points.forEach((p,i,a) => {
             
-            if (p.d && i < a.length-1) {
+            if (p.d && i < a.length-1) { //if not the last
                 push();
                 let life = p.l/trackLifeSpan/trackFadingPoint;
                 trackColor.setAlpha(cap(life, 0, 1)*255);
@@ -171,10 +171,15 @@ class Track {
         });
     }
 
-    addPoint(x,y,r,d) {
+    addPoint(x,y,r) {
         let pl = this.points.length;
-        let np = {'x':x,'y':y,'r':r, 'd':d, 'l': trackLifeSpan};
-        
+        let np = {'x':x,'y':y,'r':r, 'd':false, 'l': trackLifeSpan};
+        tree.query(x,y,0,0,[]).forEach(c => {
+            if (c.makesTracks && c.collideWithPoint(x,y)) {
+                np.d = true;
+            }
+        })
+
         if (pl < 3) {
             this.points.push(np);
         } else if (dist(this.points[pl-2].x, this.points[pl-2].y, np.x, np.y) < maxTrackSegmentLength) {
@@ -191,6 +196,21 @@ class Collider {
         if (new.target === Collider) { // if not sure what shape to make
             let c = {};
             c.type = o.type;
+
+            if (Collider.makesTracks.indexOf(c.type) !== -1) {
+                c.makesTracks = true;
+            } else {c.makesTracks = false}
+            if (Collider.collidesWithTank.indexOf(c.type) !== -1) {
+                c.collidesWithTank = true;
+            } else {c.collidesWithTank = false}
+            if (Collider.collidesWithBullets.indexOf(c.type) !== -1) {
+                c.collidesWithBullets = true;
+            } else {c.collidesWithBullets = false}
+
+            if (c.type === 'grass') {
+                c.maxV = grassSpeed;
+            }
+            
 
             if (o.shape === "circle") {
                 c.shape = "circle";
@@ -252,16 +272,16 @@ class Collider {
     }
 
     static shapes = ['rect', 'circle', 'brush', 'line'];
-    static types = ['grass', 'snow', 'colliders'];
-    static brushSize = 5;
 
-    quickDraw() {
-        this.draw();
-    }
+    static types = ['grass', 'snow', 'colliders', 'shield'];
+    static makesTracks = ['grass', 'snow'];
+    static collidesWithTank = ['colliders'];
+    static collidesWithBullets = ['colliders', 'shield'];
+
+    static brushSize = 5;
 
     draw() {
         console.log('Collider.draw has been called!');
-        // console.log(this)
     }
 }
 
@@ -285,6 +305,10 @@ class ColliderCircle extends Collider {
 
     collideWithPoint(x,y) {
         return dist(this.x, this.y, x, y)<this.r;
+    }
+
+    collideWithCircle(x,y,r) {
+        return dist(this.x,this.y,x,y) < r+this.r;
     }
 
     collideWithTank(tankVerticis, tankCenter){
@@ -341,7 +365,27 @@ class ColliderRect extends Collider {
     }
 
     collideWithPoint(x,y) {
-        return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+        // return (x>this.x1 && this.x2>x && y>this.y1 && this.y2>y);
+        return !(
+            x < this.x1 ||
+            y < this.y1 ||
+            x > this.x2 ||
+            y > this.y2 
+        )
+    }
+
+    collideWithCircle(x,y,r) {
+        return !(
+            x + r < this.x1 ||
+            x - r > this.x2 ||
+            y + r < this.y1 ||
+            y - r > this.y2
+        ) || 
+            dist(this.x1,this.y1, x, y) < r ||
+            dist(this.x1,this.y2, x, y) < r ||
+            dist(this.x2,this.y1, x, y) < r ||
+            dist(this.x2,this.y2, x, y) < r 
+        
     }
 
     collideWithTank(tankVerticis, tankCenter){
@@ -406,8 +450,9 @@ class ColliderRect extends Collider {
             case "lm":
                 if (tankCenter.x < this.x1 - tankR) {return false;} // no collision
                 return {x: this.x1 - tankR, y: tankCenter.y}
-            case "mm":
-                console.log("mm");
+                case "mm":
+                    return tankCenter;
+                // console.log("mm");
                 return false;
             default:
                 console.log("this isn't supposed to be possible error code 911");
@@ -515,6 +560,11 @@ class ColliderLine extends Collider {
         return (collidePointLine(x,y,this.x1,this.y1,this.x2,this.y2));
     }
 
+    collideWithCircle(x,y,r) {
+        let cp = this.closestPoint(x,y);
+        return(dist(cp.x,cp.y,x,y) < r);
+    }
+
     collideWithTank(tankVerticis, tankCenter) {
         let tankR = dist(tankCenter.x, tankCenter.y, tankVerticis[0].x, tankVerticis[0].y);
         let cp = this.closestPoint(tankCenter.x,tankCenter.y);
@@ -540,14 +590,18 @@ class Bullet {
         this.isPlayerBullet = isPlayerBullet;
         sounds.shot.play();
     }
-
+    
     updateInternals(x,y,r){
         this.x = x;
         this.y = y;
         this.r = r;
     }
-
+    
     checkCollisions(){
+        if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
+            this.needsCleanup = true;
+        }
+        
         let colCheck = (enemy) => {
             let enemyTankVerticis = enemy.getVerticis();
             // let o = {'x': enemy.x, 'y': enemy.y}
@@ -605,7 +659,21 @@ class Bullet {
             // }
             player.isHit = true;
             this.needsCleanup = true;
+            return;
         }
+
+        
+        tree.query(this.x,this.y,10,10,[]).forEach(c => {
+            if (c.collidesWithBullets) {
+                // if (c.collideWithPoint(this.x,this.y)) {
+                if (c.collideWithCircle(this.x,this.y, bulletSpeed)) {
+                    this.needsCleanup = true;
+                    return
+                }
+            }
+        })
+
+
     }
 
     update() {
@@ -614,16 +682,6 @@ class Bullet {
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
 
-        if(this.x !== cap(this.x, 0, referenceWidth) || this.y !== cap(this.y, 0, referenceHeight)){
-            this.needsCleanup = true;
-        }
-        tree.query(this.x,this.y,10,10,[]).forEach(c => {
-            if (c.type === "colliders") {
-                if (c.collideWithPoint(this.x,this.y)) {
-                    this.needsCleanup = true
-                }
-            }
-        })
         // console.log(this);
     };
 
@@ -650,6 +708,7 @@ class Tank {
         
         this.wasOnSurface = ["default","default","default","default"];
         this.onSurface = ["default","default","default","default"];
+        this.onGrass = [0,0,0,0]
         this.collisionRad = tankCollisionRad;
 
         this.bullets = {};
@@ -742,31 +801,7 @@ class Tank {
             socket.emit('kill', {'killer': this.lastHitBy});
         }
 
-        this.onGrass = [0,0,0,0]; // nts wtf clean dit up!
-        this.getVerticis().forEach((v, i) => {
-            // level.environment.grass.forEach(g => {
-            tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(g => {
-                if ((g.type === "grass" || g.type === "snow") && g.collideWithPoint(v.x,v.y)) {
-                    // this.onGrass = true
-                    this.onGrass[i] = true
-                }
-            });
-            // if (level.environment.snow) {
-            //     level.environment.snow.forEach(s => {
-            //         if (s.collideWithPoint(v.x,v.y)) {
-            //             // this.onGrass = true
-            //             this.onGrass[i] = true
-            //         }
-            //     });
-            // }
-        });
-
-        let speedCap = maxV;
-        if (this.upgrades.superSpeed) {
-            speedCap = superMaxV;
-            this.upgrades.superSpeed--;
-        }
-        this.v = cap(this.v,0,speedCap);
+        this.v = cap(this.v,0,maxV);
         this.x += cos(this.r)*this.v;
         this.y += sin(this.r)*this.v;
         this.x = cap(this.x,0,referenceWidth);
@@ -774,18 +809,14 @@ class Tank {
     }
 
     makeTracks() {
-        for (let i = 1; i <3; i++) {            
-            this.tracks[i-1].addPoint(this.getVerticis()[i].x,this.getVerticis()[i].y,this.r, this.onGrass[i]);
-        }
+            this.tracks[0].addPoint(this.getVerticis()[1].x,this.getVerticis()[1].y,this.r);
+            this.tracks[1].addPoint(this.getVerticis()[2].x,this.getVerticis()[2].y,this.r);
     }
 
     drawTracks() {
-        // console.time('drawTracks');
         this.tracks.forEach(t => {
             t.draw();
         });
-        // console.timeLog('drawTracks');
-        // console.timeEnd('drawTracks')
     }
     
     rotate(dr) {
@@ -844,38 +875,31 @@ class Player extends Tank {
 
         super.update(); // Tank.update() function
 
-        // --- collisions:
-        let tankVerticis = this.getVerticis();
-        // DEBUG hitbox
-        push();
-        stroke(colors['white'])
-        point(tankVerticis[0].x * scale, tankVerticis[0].y * scale);
-        point(tankVerticis[1].x * scale, tankVerticis[1].y * scale);
-        point(tankVerticis[2].x * scale, tankVerticis[2].y * scale);
-        point(tankVerticis[3].x * scale, tankVerticis[3].y * scale);
-        pop();
-        // level.environment.colliders.forEach(c => {
-        tree.query(this.x,this.y,this.collisionRad, this.collisionRad, []).forEach(c => {
-            if (c.type !== "colliders") { // nts improve
-                return;
+        tree.query(this.x,this.y,this.collisionRad,this.collisionRad,[]).forEach(c => {
+            if (c.collideWithTank(this.getVerticis(),this.getPos())) { // if we collide with this collider
+                if (c.collidesWithTank) { // if tanks collide with this type of collider
+                    let newPos = c.collideWithTank(this.getVerticis(), this.getPos());
+                    if (newPos){
+                        this.x = newPos.x;
+                        this.y = newPos.y;
+                    }
+                }
+                // if (c.maxV) { circular hitbox makes this verry nasty
+                // if (c.collideWithPoint(player.x,player.y)) {
+                    // console.log("joe")
+                    // this.v = cap(this.v, 0, c.maxV);
+                // }
             }
-            // if (c.collideWithPoint(this.x, this.y)) {
-            //     let newPos = c.collissionPoint(this.x, this.y);
-            //     this.x = newPos.x;
-            //     this.y = newPos.y;
-            // }
-            let tankLevelCol = c.collideWithTank(tankVerticis, this.getPos());
-            if (tankLevelCol){
-                this.x = tankLevelCol.x;
-                this.y = tankLevelCol.y;
+            if (c.maxV && c.collideWithPoint(player.x,player.y)) {
+                // console.log("joe")
+                this.v = cap(this.v, 0, c.maxV);
             }
         });
-
+        
         this.updateBullets();
 
         socket.emit('update_player', this); // this works apearantly?
 
-        
     }
 
     updateBullets(){
