@@ -499,8 +499,6 @@ function loadAnimations() {
 }
 
 function windowResized() {
-    ellipse(0,0,100,100);
-    console.log('windowResized');
     let currentAspectRatio = windowWidth/windowHeight;
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
         resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
@@ -509,6 +507,9 @@ function windowResized() {
         resizeCanvas(windowHeight*targetAspectRatio, windowHeight);
         scale = windowHeight/referenceHeight;
     }
+
+    camera.position.x = width/2; // because p5 play is gay
+    camera.position.y = height/2;
 }
 
 function cap(x, min, max) {
