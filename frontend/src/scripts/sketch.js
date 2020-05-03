@@ -306,7 +306,10 @@ function draw() {
     
     if (state.is('game')) { // main game loop
         background(backgroundColor);
-        image(backgroundImage, 0, 0, width, height);
+        // image(backgroundImage, 0, 0, width, height);
+        push();
+        image(backgroundImage, 0, 0, referenceWidth*scale, referenceHeight*scale);
+        pop();
         // level.drawGrass();
         // drawTracks();
         // level.drawEnvironment();
@@ -496,6 +499,8 @@ function loadAnimations() {
 }
 
 function windowResized() {
+    ellipse(0,0,100,100);
+    console.log('windowResized');
     let currentAspectRatio = windowWidth/windowHeight;
     if (currentAspectRatio < targetAspectRatio) { // te hoog // width is limiting
         resizeCanvas(windowWidth, windowWidth/targetAspectRatio);
