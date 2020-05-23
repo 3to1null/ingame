@@ -996,11 +996,13 @@ class Enemy extends Tank {
 
 class Sound {
     constructor(src) {
+        this.volume = 0.01;
         this.i = 0;
         this.m = maxAudioDex;
         this.sounds = [];
         for (let i = 0; i < this.m; i++) {
             this.sounds[i] = new Audio(`src/audio/${src}.wav`);
+            this.sounds[i].volume = this.volume;
         }
     }
 
