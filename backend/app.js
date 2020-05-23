@@ -10,7 +10,7 @@ const tickTime = 50;
 // const roundTicks = 1000 * 20;
 const roundTicks = 100 * 20;
 // const roundTicks = 10 * 20;
-const levelAmount = 3;
+const levelAmount = 8;
 
 const state = {
   "players":{},
