@@ -1,96 +1,98 @@
-var app = require('http').createServer()
-var io = require('socket.io')(app);
-var fs = require('fs');
+let udp = require('dgram');
 
-console.log('Starting socket');
+// --------------------creating a udp server --------------------
+let server = udp.createSocket('udp4');
 
-app.listen(8009);
-
-const tickTime = 50;
-// const roundTicks = 1000 * 20;
-const roundTicks = 100 * 20;
-// const roundTicks = 10 * 20;
-const levelAmount = 8;
-
-const state = {
-  "players":{},
-  "map": 0,
-  "roundTimeRemaining": roundTicks * tickTime
-};
-
-const initWaitTime = 1000;
-
-let roundTicksRemaining = roundTicks;
-
-io.on('connection', (socket) => {
-  let newPlayer = {
-    "x": 0,
-    "y": 0,
-    "r": 0,
-    "v": 0,
-    "tr": 0,
-    "c": "red",
-    'name': "unnamed",
-    'bullets': [],
-  };
-
-  state["players"][socket.id] = newPlayer
-
-  // Emit new player to all other players
-  setTimeout(() => {socket.broadcast.emit('player_join', {
-      "id": socket.id,
-      "player": newPlayer
-  })}, initWaitTime);
-
-  // Emit state to new player
-  setTimeout(() => {socket.emit('init', {
-    'state': state
-  })}, initWaitTime);
-
-
-  socket.on('update_player', (data) => {
-    state["players"][socket.id] = data;
-  });
-
-  socket.on('bullet_hit', (data) => {
-    io.to(data['hit']).emit('bullet_hit', {'shotBy': socket.id})
-  });
-
-  socket.on('kill', (data) => { // when a kill has been detected, send a message to the killer to confirm they have a kill
-    io.to(data.killer).emit('kill', data);
-  });
-
-  socket.on('destroy', (data) => {
-    io.emit('splosion', data); // tell everyone to add splosion
-  })
-
-  socket.on('disconnect', (reason) => {
-    console.log(`${socket.id} closed connection for reason: ${reason}.`)
-    io.emit('delete', {
-      'id': socket.id
-    });
-    delete state["players"][socket.id];
-  })
+// emits when any error occurs
+server.on('error',function(error){
+    console.log('Error: ' + error);
+    server.close();
 });
 
-// Broadcast game state
-let lastUpdate;
-setInterval(() => {
-  let update = Date.now();
 
-  if(update - lastUpdate > tickTime * 1.1){
-    console.log(`Spend ${lastUpdate - update}ms on a frame!`)
-  }
+server.on('listening',function(){
+	console.log('Server is listening at port ' + server.address().port);
+});
 
-  state['roundTimeRemaining'] = roundTicksRemaining * tickTime;
+//emits after the socket is closed using socket.close();
+server.on('close',function(){
+	console.log('Socket is closed !');
+});
 
-  io.emit('update_state', state)
+server.bind(8009);
 
-  if(roundTicksRemaining > 0){
-    roundTicksRemaining -= 1;
-  }else{
-    roundTicksRemaining = roundTicks;
-    state.map = Math.floor(Math.random() * levelAmount);
-    io.emit('new_round', state.map);
-  }
-}, tickTime)
+// --------------------------------------------------------------
+
+class Client {
+	constructor(ip, port) {
+		this.lastRecv = Date.now();
+		// this.id = ip + port;
+		this.ip = ip;
+		this.port = port;
+	}
+}
+
+const cb = {
+	SPING: 0x00,	// 0 - ping from server
+	CPING: 0x01,	// 1 - ping from client
+	SUPDATE: 0x02,	// 2 - update from the server
+	CUPDATE: 0x03,	// 3 - update from a client
+	// PLAYER_UPDATE: 4	// 4 - update about the players
+};
+
+// --------------------------------------------------------------
+
+let clients = [];
+
+server.on('message',function(msg,info) { // server recv
+	// console.log('Data received from client : ' + msg.toString());
+	console.log("\n\n||------------------------------------------------");
+	console.log('Received %d bytes from %s:%d',msg.length, info.address, info.port);
+   
+	let isNew = true;
+	clients.forEach(c => {
+		// console.log(info);
+		// console.log(c.ip);
+		if (info.address === c.ip && info.port == c.port) {
+			isNew = false;
+		}
+	});
+
+	console.log("cByte:%i", msg[0]);
+
+	if (isNew) {
+		clients.push(new Client(info.address, info.port));
+		console.log("Added new client");
+	}
+
+	switch (msg[0]) {
+		case cb.CPING:
+			let currentTime = Date.now()%2147483647;
+			let clientTime = msg.readInt32LE(1);
+			console.log("pinged by %s: | %s", info.address, clientTime);
+			console.log("server time:                %i", currentTime);
+			console.log("difference:                 %i", currentTime - clientTime);
+
+			let response = Buffer.alloc(5);
+			response.writeInt8(cb.CPING);
+			response.writeInt32LE(currentTime, 1);
+
+			// server.send(response, info.port,info.address); // send cPing back
+			server.send(msg, info.port,info.address); // send cPing back
+	}
+	
+	// server.send(msg,info.port,info.address,function(error){
+	// 	if(error){
+	// 		client.close();
+	// 	}else{
+	// 		console.log('Data sent !!!');
+	// 	}
+	// });
+
+
+});
+
+// setTimeout(function(){
+	// server.close();
+	// },80000);
+	
