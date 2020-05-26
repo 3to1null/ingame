@@ -19,8 +19,6 @@ server.on('close',function(){
 	console.log('Socket is closed !');
 });
 
-// test
-
 server.bind(8009);
 
 // --------------------------------------------------------------
