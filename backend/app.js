@@ -1,6 +1,12 @@
-var app = require('http').createServer()
-var io = require('socket.io')(app);
+
 var fs = require('fs');
+var app = require('https').createServer({ 
+  key: fs.readFileSync(keyLocation),
+  cert: fs.readFileSync(certLocation) 
+})
+
+var io = require('socket.io')(app);
+
 
 console.log('Starting socket');
 
